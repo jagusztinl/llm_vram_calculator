@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Hardver Tervező</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f3f2ec; --card:#ffffff; --soft:#f6f5f0; --line:#e6e4dc; --line2:#d6d3c8;
+  --ink:#141413; --muted:#6e6c65; --faint:#a3a199;
+  --lime:#c8ff3a; --lime-ink:#4c6a00; --yellow:#ffd23f; --orange:#ff5b37;
+  --black:#121212; --red:#c8371b; --green:#2f7d32;
+  --r:24px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 "Instrument Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+button,input,select{font:inherit;color:inherit}
+a{color:inherit}
+
+/* header */
+header{background:var(--soft);border-bottom:1px solid var(--line)}
+.head{max-width:1400px;margin:0 auto;padding:22px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{width:52px;height:52px;border-radius:14px;background:var(--lime);display:grid;place-items:center;font:700 19px "IBM Plex Mono",monospace;flex:none}
+.brand h1{margin:0;font-size:clamp(19px,2.6vw,26px);font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;white-space:nowrap}
+.pill.dark{background:var(--black);color:#fff;border-color:var(--black)}
+
+/* layout */
+main{max-width:1400px;margin:0 auto;padding:28px 16px 0;display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px}
+.card h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:20px}
+.tag{border:1px solid var(--line2);background:var(--soft);border-radius:10px;padding:6px 10px;font-size:13px;white-space:nowrap;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.full{max-width:1400px;margin:24px auto 0;padding:0 16px}
+
+/* form */
+.lbl{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:13.5px;margin:0 0 8px}
+.lbl b{color:var(--ink);font-weight:600}
+.field{margin-top:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.inp,select.inp{width:100%;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:14.5px;outline:none;appearance:none;-webkit-appearance:none}
+select.inp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23141413' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+.inp:focus{border-color:var(--ink)}
+.inp.small{padding:9px 11px;font-size:13.5px;border-radius:11px}
+.hint{color:var(--faint);font-size:12px;margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:9px 0;flex:1;min-width:58px;text-align:center;font:500 13.5px "IBM Plex Mono",monospace;cursor:pointer}
+.chip:hover{border-color:var(--line2)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--line);border-radius:999px;outline:none;margin:14px 0 6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--lime);border:3px solid var(--ink);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--lime);border:3px solid var(--ink);cursor:pointer}
+.range-scale{display:flex;justify-content:space-between;color:var(--faint);font-size:12px}
+.seg{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;flex-wrap:wrap}
+.seg button{flex:1;border:0;background:transparent;border-radius:10px;padding:8px 6px;font-size:13px;font-weight:500;cursor:pointer;min-width:56px}
+.seg button.on{background:#fff;box-shadow:0 1px 0 var(--line2),0 0 0 1px var(--line2)}
+details.more{margin-top:18px;border-top:1px dashed var(--line2);padding-top:14px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:13.5px;list-style:none}
+details.more summary::before{content:"+ "}
+details.more[open] summary::before{content:"– "}
+.formula{margin-top:18px;border:1px dashed var(--line2);background:var(--soft);border-radius:16px;padding:14px 16px;font-size:14px;line-height:1.6}
+.formula .lime{color:var(--lime-ink);font-weight:600}
+.warn-inline{color:var(--red);font-size:12.5px;margin-top:6px}
+.edited{display:inline-block;margin-left:6px;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--yellow);color:var(--ink);vertical-align:middle}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.kpi .k{font:500 13px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.big{font:700 clamp(30px,3.4vw,44px)/1.05 "IBM Plex Mono",monospace;letter-spacing:-.02em;margin-top:16px;word-break:break-word}
+.big small{font-size:.48em;color:var(--muted);font-weight:600;margin-left:4px}
+.kpi .sub{margin-top:14px;color:var(--muted);font:13.5px/1.5 "IBM Plex Mono",monospace}
+.kpi.dark{background:var(--black);color:#fff;border-color:var(--black)}
+.kpi.dark .k,.kpi.dark .sub{color:#b5b5ad}
+.kpi.dark .big small{color:#b5b5ad}
+.status{display:inline-flex;align-items:center;gap:6px;font:600 12px "IBM Plex Mono",monospace;padding:4px 9px;border-radius:999px;margin-top:12px}
+.st-fit{background:var(--lime);color:var(--ink)}
+.st-offload{background:var(--yellow);color:var(--ink)}
+.st-nofit{background:var(--orange);color:#fff}
+
+/* memory bar */
+.bar{position:relative;height:42px;border-radius:999px;background:repeating-linear-gradient(135deg,var(--soft),var(--soft) 8px,#eceae2 8px,#eceae2 16px);border:1px solid var(--line);overflow:hidden;display:flex}
+.bar > div{height:100%;display:flex;align-items:center;justify-content:center;font:600 13.5px "IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;transition:width .25s}
+.seg-w{background:var(--lime)}
+.seg-k{background:var(--yellow)}
+.seg-o{background:#d9d6cb}
+.seg-x{background:var(--orange);color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;font-size:14px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.06)}
+.minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:22px}
+.mini{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.mini .m1{color:var(--muted);font-size:13.5px}
+.mini .m2{font-weight:700;font-size:18px;margin-top:6px}
+.footnote{color:var(--faint);font:12.5px "IBM Plex Mono",monospace;margin-top:14px}
+
+/* speed + reco */
+.row2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px}
+.speed-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:14px}
+.speed-top .big{margin-top:0;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin-top:18px;font-size:14px}
+.stats div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:7px}
+.stats span{color:var(--muted)}
+.stats b{font-family:"IBM Plex Mono",monospace;font-weight:600;text-align:right}
+.reco{background:var(--orange);border-color:var(--orange);color:#1c0a04}
+.reco .k{font:700 14px "IBM Plex Mono",monospace;letter-spacing:.12em}
+.reco ul{margin:14px 0 0;padding-left:18px;font-size:14.5px;line-height:1.5}
+.reco li{margin-bottom:9px}
+.reco.ok{background:var(--lime);border-color:var(--lime);color:var(--ink)}
+.reco.mid{background:var(--yellow);border-color:var(--yellow);color:var(--ink)}
+
+/* table */
+.tablewrap{overflow-x:auto;margin:0 -6px;padding:0 6px}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+th{text-align:left;color:var(--muted);font:500 12px "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;padding:0 10px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.num{font-family:"IBM Plex Mono",monospace;text-align:right;white-space:nowrap}
+th.num{text-align:right}
+tr.hw{cursor:pointer}
+tr.hw:hover td{background:var(--soft)}
+tr.hw.sel td{background:#f2ffd6}
+.grp{font:600 11px "IBM Plex Mono",monospace;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line2);border-radius:6px;padding:1px 6px;margin-left:6px}
+.badge{display:inline-block;font:600 11.5px "IBM Plex Mono",monospace;border-radius:999px;padding:3px 9px;white-space:nowrap}
+
+/* roi */
+.roi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.out4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:22px}
+.ocard{border:1px solid var(--line);background:var(--soft);border-radius:18px;padding:18px}
+.ocard .k{font:500 12px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ocard .v{font:700 26px/1.1 "IBM Plex Mono",monospace;margin-top:10px;word-break:break-word}
+.ocard .s{color:var(--muted);font-size:13px;margin-top:8px}
+.ocard.dark{background:var(--black);border-color:var(--black);color:#fff}
+.ocard.dark .k,.ocard.dark .s{color:#b5b5ad}
+.util{margin-top:22px}
+.util .bar{height:30px}
+.verdict{margin-top:20px;border-radius:18px;padding:18px 20px;font-size:15px;line-height:1.55}
+.verdict b{font-family:"IBM Plex Mono",monospace;letter-spacing:.04em}
+.v-good{background:var(--lime)}
+.v-mid{background:var(--yellow)}
+.v-bad{background:#ffe1d8}
+
+/* formulas */
+.fx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 28px;font-size:14px;line-height:1.55}
+.fx code{font-family:"IBM Plex Mono",monospace;font-size:13px;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:2px 6px;display:inline-block;margin:4px 0}
+.fx h3{margin:0 0 4px;font-size:15px}
+.fx p{margin:0;color:var(--muted)}
+footer{max-width:1400px;margin:24px auto 0;padding:0 16px 48px;color:var(--muted);font-size:12.5px;line-height:1.6}
+
+@media (max-width:1100px){
+  main{grid-template-columns:1fr}
+  .roi-grid,.out4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:720px){
+  .kpis,.row2,.minis,.fx{grid-template-columns:1fr}
+  .card{padding:20px}
+  .roi-grid,.out4{grid-template-columns:1fr 1fr}
+  .stats{grid-template-columns:1fr}
+}
+@media (max-width:420px){
+  .g3,.roi-grid,.out4{grid-template-columns:1fr 1fr}
+}
+
+/* v2 kiegészítések */
+.btn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:12px;padding:10px 14px;font:600 13.5px "Instrument Sans",sans-serif;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line2)}
+.btn.lime{background:var(--lime);color:var(--ink);border-color:var(--lime)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+textarea.inp{min-height:110px;resize:vertical;font-size:12.5px;line-height:1.45}
+.msg{font-size:13px;margin-top:10px;line-height:1.45}
+.msg.ok{color:var(--green)} .msg.err{color:var(--red)}
+.cmd{margin-top:12px;background:var(--black);color:#e9ffb3;border-radius:12px;padding:10px 12px;font:12.5px "IBM Plex Mono",monospace;overflow-x:auto;white-space:nowrap}
+.togglerow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px dashed var(--line2);flex-wrap:wrap}
+.togglerow .t1{font-weight:600;font-size:14.5px}
+.togglerow .t2{color:var(--muted);font-size:12.5px}
+.sw{position:relative;width:46px;height:26px;border-radius:999px;background:var(--line2);border:0;cursor:pointer;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:var(--ink)} .sw.on::after{left:23px;background:var(--lime)}
+.sw:disabled{opacity:.4;cursor:not-allowed}
+.qrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px;align-items:stretch}
+.qcell{border:1px dashed var(--line2);border-radius:16px;padding:14px 16px;font-size:13.5px}
+.qcell .k{font:500 12px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.qcell .v{font:700 22px "IBM Plex Mono",monospace;margin-top:6px}
+.qbar{height:8px;border-radius:999px;background:var(--line);margin-top:8px;overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--ink)}
+.calbadge{display:inline-block;margin-left:6px;font:600 11px "IBM Plex Mono",monospace;padding:2px 7px;border-radius:999px;background:var(--black);color:var(--lime);vertical-align:middle}
+.datarow{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+@media (max-width:720px){ .qrow{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head">
+    <div class="brand">
+      <div class="logo">LLM</div>
+      <div>
+        <h1>LLM Hardver Tervező – VRAM, RAM, Token/s</h1>
+        <p class="mono">memória = súlyok × bit + KV cache + runtime · sebesség = sávszél ÷ olvasott bájt</p>
+      </div>
+    </div>
+    <div class="pills">
+      <span class="pill mono" id="pillQuant">Q4_K_M · KV f16</span>
+      <span class="pill mono" id="pillData">adatok: 2026-10-17</span>
+      <span class="pill dark">kliens oldali · nincs API-kulcs</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- BAL OSZLOP -->
+  <div class="col">
+    <section class="card">
+      <div class="card-head"><h2>1. Modell</h2><span class="tag mono" id="modelTag">–</span></div>
+
+      <div class="field" style="margin-top:0">
+        <div class="lbl"><span>Modell / architektúra</span><b class="mono" id="qTag"></b></div>
+        <select class="inp" id="preset"></select>
+        <div class="hint" id="presetNote"></div>
+      </div>
+
+      <details class="more" id="hfDetails" style="margin-top:12px">
+        <summary>Modell betöltése Hugging Face-ről vagy config.json-ból</summary>
+        <div class="field">
+          <div class="lbl">Hugging Face modell-ID</div>
+          <div class="g2" style="grid-template-columns:1fr auto">
+            <input class="inp small" id="hfId" type="text" placeholder="pl. Qwen/Qwen3.8-27B" autocomplete="off" spellcheck="false">
+            <button class="btn" id="hfLoad">Betöltés</button>
+          </div>
+          <div class="hint">A config.json-t és a safetensors paraméterszámot a böngésződ tölti le a huggingface.co-ról. Engedélyhez kötött (gated) modellnél illeszd be a config.json tartalmát.</div>
+        </div>
+        <div class="field">
+          <div class="lbl">…vagy config.json beillesztése</div>
+          <textarea class="inp" id="cfgText" spellcheck="false" placeholder='{"num_hidden_layers": 36, "hidden_size": 2880, ...}'></textarea>
+          <div class="g2" style="margin-top:10px;grid-template-columns:1fr auto">
+            <input class="inp small" id="cfgParams" type="number" step="0.1" min="0" placeholder="össz. paraméter (B), ha tudod">
+            <button class="btn ghost" id="cfgParse">Feldolgozás</button>
+          </div>
+        </div>
+        <div class="msg" id="hfMsg"></div>
+      </details>
+
+      <div class="field">
+        <div class="lbl"><span>Paraméter (memóriában tartott)</span><b class="mono" id="paramVal">–</b></div>
+        <input type="range" id="paramRange" min="0" max="1000" step="1" aria-label="Paraméterszám">
+        <div class="range-scale mono"><span>0,5B</span><span>1000B</span></div>
+        <div class="chips" id="paramChips"></div>
+      </div>
+
+      <div class="g2 field">
+        <div>
+          <div class="lbl">Kvantálás</div>
+          <select class="inp" id="quant"></select>
+          <div class="hint mono" id="quantHint"></div>
+        </div>
+        <div>
+          <div class="lbl">KV cache típus</div>
+          <select class="inp" id="kvType"></select>
+          <div class="hint mono" id="kvHint"></div>
+        </div>
+      </div>
+
+      <div class="g2 field">
+        <div>
+          <div class="lbl">Kontextus (token)</div>
+          <input class="inp" id="ctx" type="number" min="512" step="1024">
+        </div>
+        <div>
+          <div class="lbl">Párhuzamos kérés</div>
+          <input class="inp" id="par" type="number" min="1" max="256" step="1">
+        </div>
+      </div>
+      <div class="chips" id="ctxChips"></div>
+      <div class="warn-inline" id="ctxWarn"></div>
+
+      <div class="formula mono" id="formulaBox"></div>
+
+      <details class="more" id="archDetails">
+        <summary>Architektúra részletei (config.json alapján, szerkeszthető)</summary>
+        <div class="g2 field">
+          <div><div class="lbl">Aktív paraméter (B)</div><input class="inp small" id="a_active" type="number" step="0.1" min="0.1"></div>
+          <div><div class="lbl">Host RAM-ban (B)</div><input class="inp small" id="a_host" type="number" step="1" min="0"></div>
+        </div>
+        <div class="lbl field" style="margin-bottom:6px"><span>Teljes figyelmű rétegek</span></div>
+        <div class="g3">
+          <div><div class="hint" style="margin:0 0 4px">rétegek</div><input class="inp small" id="a_fn" type="number" min="0"></div>
+          <div><div class="hint" style="margin:0 0 4px">KV fejek</div><input class="inp small" id="a_fkv" type="number" min="0"></div>
+          <div><div class="hint" style="margin:0 0 4px">head_dim</div><input class="inp small" id="a_fhd" type="number" min="0"></div>
+        </div>
+        <div class="lbl field" style="margin-bottom:6px"><span>Csúszóablakos (SWA) rétegek</span></div>
+        <div class="g3">
+          <div><div class="hint" style="margin:0 0 4px">rétegek</div><input class="inp small" id="a_sn" type="number" min="0"></div>
+          <div><div class="hint" style="margin:0 0 4px">KV × dim</div><input class="inp small" id="a_skvd" type="text" placeholder="8x256"></div>
+          <div><div class="hint" style="margin:0 0 4px">ablak</div><input class="inp small" id="a_sw" type="number" min="0"></div>
+        </div>
+        <div class="lbl field" style="margin-bottom:6px"><span>MLA (latens KV) rétegek</span></div>
+        <div class="g3">
+          <div><div class="hint" style="margin:0 0 4px">rétegek</div><input class="inp small" id="a_mn" type="number" min="0"></div>
+          <div><div class="hint" style="margin:0 0 4px">latens dim</div><input class="inp small" id="a_md" type="number" min="0"></div>
+          <div><div class="hint" style="margin:0 0 4px">olvasás max</div><input class="inp small" id="a_cap" type="number" min="0" placeholder="0 = mind"></div>
+        </div>
+        <div class="g2 field">
+          <div><div class="hint" style="margin:0 0 4px">szótár (vocab)</div><input class="inp small" id="a_vocab" type="number" min="1000"></div>
+          <div><div class="hint" style="margin:0 0 4px">max kontextus</div><input class="inp small" id="a_maxctx" type="number" min="512"></div>
+        </div>
+        <div class="hint">Lineáris figyelmű (Gated DeltaNet, KDA, Mamba) rétegeknek nincs növekvő KV-je, csak fix méretű állapotuk. Az „olvasás max” ritka figyelemnél (DSA, QSA) a dekódolás közben olvasott tokenek felső korlátja.</div>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>2. Hardver</h2><span class="tag mono" id="hwTag">–</span></div>
+      <div class="seg" id="platSeg"></div>
+      <div class="field">
+        <div class="lbl">Eszköz</div>
+        <select class="inp" id="hwSel"></select>
+        <div class="hint" id="hwNote"></div>
+      </div>
+      <div class="g2 field">
+        <div><div class="lbl">Gyorsító memória (GiB, használható)</div><input class="inp small" id="h_mem" type="number" min="1" step="1"></div>
+        <div><div class="lbl">Sávszélesség (GB/s)</div><input class="inp small" id="h_bw" type="number" min="1" step="1"></div>
+      </div>
+      <div class="g2 field" id="dgpuRow">
+        <div><div class="lbl">Rendszer-RAM (GiB)</div><input class="inp small" id="h_sys" type="number" min="0" step="8"></div>
+        <div><div class="lbl">RAM sávszél (GB/s)</div><input class="inp small" id="h_sysbw" type="number" min="1" step="1"></div>
+      </div>
+      <div class="field" id="tpRow">
+        <div class="lbl">Több GPU elosztása</div>
+        <div class="seg" id="tpSeg">
+          <button data-v="0">Rétegenként (llama.cpp)</button>
+          <button data-v="1">Tensor parallel (vLLM)</button>
+        </div>
+      </div>
+      <div class="g2 field">
+        <div><div class="lbl">Számítás (≈ dense FP16 TFLOPS)</div><input class="inp small" id="h_tf" type="number" min="0.1" step="1"></div>
+        <div><div class="lbl">Biztonsági tartalék</div>
+          <select class="inp small" id="margin"><option value="0">0%</option><option value="0.1">10%</option><option value="0.2">20%</option></select></div>
+      </div>
+      <div class="field">
+        <div class="lbl"><span>Tipikus prompt hossza (token)</span></div>
+        <input class="inp small" id="prompt" type="number" min="16" step="256">
+        <div class="hint">Az első token idejéhez (TTFT); kódoló agenteknél 10–50 ezer is lehet.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- JOBB OSZLOP -->
+  <div class="col">
+    <div class="kpis">
+      <div class="card kpi">
+        <div class="k">Súlyok mérete</div>
+        <div class="big" id="kW">–</div>
+        <div class="sub" id="kWs"></div>
+      </div>
+      <div class="card kpi">
+        <div class="k">KV cache</div>
+        <div class="big" id="kK">–</div>
+        <div class="sub" id="kKs"></div>
+      </div>
+      <div class="card kpi dark">
+        <div class="k" id="kTl">Teljes igény</div>
+        <div class="big" id="kT">–</div>
+        <div class="sub" id="kTs"></div>
+        <div id="kTst"></div>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head" style="margin-bottom:16px"><h2>Memória megoszlás</h2><span class="mono" style="color:var(--muted);font-size:14px" id="memTotal"></span></div>
+      <div class="bar" id="memBar"></div>
+      <div class="legend" id="memLegend"></div>
+      <div class="minis">
+        <div class="mini"><div class="m1">KV / token</div><div class="m2 mono" id="mKV">–</div></div>
+        <div class="mini"><div class="m1">Szabad / hiány</div><div class="m2 mono" id="mHead">–</div></div>
+        <div class="mini"><div class="m1">Max kontextus ezen a gépen</div><div class="m2 mono" id="mCtx">–</div></div>
+      </div>
+      <div class="footnote" id="memFoot"></div>
+    </section>
+
+    <div class="row2">
+      <section class="card">
+        <h2>Token sebesség – decode <span id="calBadge"></span></h2>
+        <div class="speed-top"><div class="big" id="sMain">–</div><span class="mono" style="color:var(--muted)">token/s · 1 felhasználó</span></div>
+        <div class="stats" id="sStats"></div>
+
+        <div class="togglerow">
+          <div><div class="t1">Spekulatív dekódolás <span class="mono" id="specKind" style="font-weight:500;color:var(--muted)"></span></div>
+            <div class="t2" id="specNote"></div></div>
+          <button class="sw" id="specSw" aria-label="Spekulatív dekódolás be/ki"></button>
+        </div>
+        <div class="g2 field" id="specRow" style="margin-top:12px">
+          <div><div class="lbl">Elfogadott token / lépés</div><input class="inp small" id="specL" type="number" step="0.05" min="1" max="10"></div>
+          <div><div class="lbl">Draft többletköltség (%)</div><input class="inp small" id="specOv" type="number" step="5" min="0" max="300"></div>
+        </div>
+
+        <details class="more" id="calDetails">
+          <summary>Kalibrálás saját méréssel (llama-bench)</summary>
+          <div class="cmd" id="calCmd">llama-bench -m modell.gguf -p 512 -n 128 -fa 1</div>
+          <div class="hint">Futtasd le a fenti modellel és kvantálással ezen a gépen, és írd be a „pp512” és „tg128” sor t/s értékét. A szorzót gépenként tárolja, a táblázatban is érvényesül.</div>
+          <div class="g2 field">
+            <div><div class="lbl">Mért pp512 (tok/s)</div><input class="inp small" id="calPp" type="number" step="1" min="0"></div>
+            <div><div class="lbl">Mért tg128 (tok/s)</div><input class="inp small" id="calTg" type="number" step="0.1" min="0"></div>
+          </div>
+          <div class="btnrow"><button class="btn" id="calApply">Kalibrálás</button><button class="btn ghost" id="calReset">Törlés</button></div>
+          <div class="msg" id="calMsg"></div>
+        </details>
+        <div class="footnote" id="sFoot"></div>
+      </section>
+      <section class="card reco" id="recoCard">
+        <div class="k">AJÁNLÁS</div>
+        <ul id="recoList"></ul>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head" style="margin-bottom:12px"><h2>Ugyanez a modell minden hardveren</h2><span class="mono" style="color:var(--muted);font-size:13px">kattints egy sorra a kiválasztáshoz</span></div>
+      <div class="tablewrap"><table id="cmpTable"></table></div>
+      <div class="footnote">Árak: 2026. októberi utcai/listaár, USD, ~ = becslés. A GPU- és RAM-árak most hetente változnak: írd át a hardver mezőiben, vagy frissítsd az adatfájlt lent.</div>
+    </section>
+  </div>
+</main>
+
+<!-- ROI -->
+<div class="full">
+  <section class="card">
+    <div class="card-head" style="flex-wrap:wrap"><h2>3. Saját hardver vs. felhős API – megtérülés</h2><span class="mono" style="color:var(--muted);font-size:13px">a kiválasztott modell + hardver kapacitásával számolva</span></div>
+    <div class="roi-grid">
+      <div style="grid-column:span 2"><div class="lbl">Összehasonlított felhős modell</div><select class="inp" id="cloudSel"></select>
+        <div class="btnrow"><button class="btn lime" id="qMatch">Legolcsóbb hasonló minőségű felhő</button><span class="hint" id="qMatchNote" style="margin:0"></span></div></div>
+      <div><div class="lbl">Input ár ($/1M)</div><input class="inp small" id="c_in" type="number" step="0.01" min="0"></div>
+      <div><div class="lbl">Output ár ($/1M)</div><input class="inp small" id="c_out" type="number" step="0.01" min="0"></div>
+      <div><div class="lbl">Napi input (M token)</div><input class="inp small" id="r_in" type="number" step="0.5" min="0"></div>
+      <div><div class="lbl">Napi output (M token)</div><input class="inp small" id="r_out" type="number" step="0.1" min="0"></div>
+      <div><div class="lbl">Cache-elt input aránya (%)</div><input class="inp small" id="r_cache" type="number" step="5" min="0" max="100"></div>
+      <div><div class="lbl">Cache-olvasás ($/1M)</div><input class="inp small" id="c_cache" type="number" step="0.001" min="0"></div>
+      <div><div class="lbl">Áramár (Ft/kWh)</div><input class="inp small" id="r_kwh" type="number" step="1" min="0"></div>
+      <div><div class="lbl">USD/HUF árfolyam</div><input class="inp small" id="r_fx" type="number" step="1" min="1"></div>
+      <div><div class="lbl">Hardver ára ($/gép)</div><input class="inp small" id="h_price" type="number" step="50" min="0"></div>
+      <div><div class="lbl">Fogyasztás terhelés / üresjárat (W)</div>
+        <div class="g2" style="gap:8px"><input class="inp small" id="h_wl" type="number" step="10" min="0" aria-label="Terhelés W"><input class="inp small" id="h_wi" type="number" step="5" min="0" aria-label="Üresjárat W"></div></div>
+      <div><div class="lbl">Leírási idő (hónap)</div><input class="inp small" id="r_amort" type="number" step="6" min="6"></div>
+      <div><div class="lbl">Maradványérték (%)</div><input class="inp small" id="r_resale" type="number" step="5" min="0" max="90"></div>
+      <div><div class="lbl">Üzemeltetés (Ft/hó)</div><input class="inp small" id="r_ops" type="number" step="5000" min="0"></div>
+      <div><div class="lbl">Bérelt GPU ($/óra)</div><input class="inp small" id="r_rent" type="number" step="0.1" min="0"></div>
+    </div>
+
+    <div class="qrow" id="qRow"></div>
+
+    <div class="out4">
+      <div class="ocard"><div class="k">Felhős API / hó</div><div class="v" id="oCloud">–</div><div class="s" id="oCloudS"></div></div>
+      <div class="ocard"><div class="k">Saját gép TCO / hó</div><div class="v" id="oLocal">–</div><div class="s" id="oLocalS"></div></div>
+      <div class="ocard"><div class="k">Bérelt GPU / hó</div><div class="v" id="oRent">–</div><div class="s" id="oRentS"></div></div>
+      <div class="ocard dark"><div class="k">Megtérülés</div><div class="v" id="oPay">–</div><div class="s" id="oPayS"></div></div>
+    </div>
+
+    <div class="util">
+      <div class="lbl"><span>Gépkihasználtság a megadott forgalomhoz</span><b class="mono" id="utilVal"></b></div>
+      <div class="bar" id="utilBar"></div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </section>
+</div>
+
+<!-- ADATOK -->
+<div class="full">
+  <section class="card">
+    <div class="datarow">
+      <div>
+        <h2>Adatfájl: modellek, hardver, árak</h2>
+        <div class="hint" id="dataInfo" style="font-size:13px"></div>
+      </div>
+      <div class="btnrow" style="margin-top:0">
+        <button class="btn" id="dataExport">Exportálás (JSON)</button>
+        <label class="btn ghost" for="dataFile" style="display:inline-block">Importálás…</label>
+        <input type="file" id="dataFile" accept="application/json,.json" style="display:none">
+        <button class="btn ghost" id="dataReset">Beépített adatok</button>
+      </div>
+    </div>
+    <div class="msg" id="dataMsg"></div>
+  </section>
+</div>
+
+<div class="full">
+  <section class="card">
+    <h2 style="margin-bottom:18px">Képletek és feltételezések</h2>
+    <div class="fx">
+      <div><h3>Súlyok</h3><code>paraméter × bit/súly ÷ 8</code><p>A bit/súly a GGUF/MXFP4 skálázókkal együtt értendő (Q4_K_M ≈ 4,85). A „Gyári” opció a kiadott checkpoint fájlméretéből visszaszámolt érték.</p></div>
+      <div><h3>KV cache</h3><code>Σ 2 × KV-fej × head_dim × tokenek × bájt</code><p>Teljes figyelmű rétegnél tokenek = kontextus, SWA-nál min(kontextus, ablak), MLA-nál latens dim × kontextus (nincs ×2). Lineáris figyelmű rétegnek csak fix állapota van. × párhuzamos kérések.</p></div>
+      <div><h3>Runtime</h3><code>0,25–0,6 GiB + 512 × vocab × 4 B + 0,25 GiB</code><p>CUDA/Metal kontextus, a logits-puffer egy 512-es ubatch-re és aktivációk. Bekapcsolt spekulatív dekódolásnál + a draft modell. Erre jön a biztonsági tartalék.</p></div>
+      <div><h3>Decode sebesség</h3><code>1 ÷ (aktív súly ÷ (BW × η) + olvasott KV ÷ (BW × η) + rétegek × 15 µs)</code><p>η: GPU 0,75, Apple/unified 0,7, CPU 0,6; MoE-nél a súlyolvasásra még × 0,65. Részleges offloadnál a kilógó rész a rendszer-RAM sávszélével (× 0,6). Tensor parallel ≈ N × 0,85, rétegenkénti elosztás nem gyorsít.</p></div>
+      <div><h3>Spekulatív dekódolás</h3><code>gyorsítás = elfogadott token/lépés ÷ (1 + draft többletköltség)</code><p>Beépített MTP-fejnél tipikusan 1,8–2 elfogadott token és ~10% többlet (≈ 1,7×). Külön draft modellnél (pl. Bolt LiLiCorr) nagyobb az elfogadás, de drágább a draft. Párhuzamos kéréseknél a nyereség 1/N-nel csökken.</p></div>
+      <div><h3>Kalibrálás</h3><code>szorzó = mért ÷ becsült (pp512, tg128)</code><p>A tg128 üres kontextuson, spekulatív dekódolás nélkül mér, ezért a becslés is így készül hozzá. A szorzó a kiválasztott gépre vonatkozik, minden modellre.</p></div>
+      <div><h3>Prefill / TTFT</h3><code>2 × aktív paraméter × prompt ÷ (TFLOPS × 0,35)</code><p>Számításkorlátos. Offloadnál a kilógó súlyok PCIe-n (~25 GB/s) mennek át 512 tokenenként. Apple és CPU itt marad le leginkább.</p></div>
+      <div><h3>Több kérés egyszerre</h3><code>lépés = max(súly + N × KV olvasás, N × 2 × aktív ÷ TFLOPS)</code><p>Dense modellnél a súlyokat egyszer olvassa minden kérés; MoE-nél a különböző kérések több szakértőt hívnak, ezt N^0,6-tel közelítjük.</p></div>
+      <div><h3>Megtérülés</h3><code>hardver ÷ (felhős díj − áram − üzemeltetés)</code><p>Gépidő = output ÷ összesített tok/s + nem cache-elt input ÷ prefill. Ha nem fér bele egy napba, több gép kell. TCO = (ár × (1 − maradvány) ÷ leírás) + áram + üzemeltetés.</p></div>
+      <div><h3>Minőség</h3><code>Artificial Analysis Intelligence Index</code><p>v4.3.2 pontszámok, ahol elérhető; a * jelűek régebbi indexverzióból valók, nem teljesen összemérhetők. A „hasonló minőségű felhő” gomb a helyi modellnél legfeljebb 2 ponttal gyengébb, legolcsóbb API-t választja.</p></div>
+      <div><h3>config.json betöltés</h3><code>layer_types · full_attention_interval · hybrid_override_pattern · kv_lora_rank</code><p>A rétegtípusokat és a KV-geometriát a configból olvassa; az össz. paraméter a Hugging Face safetensors metaadatából jön, ha nincs, a configból becsli. Az aktív paramétert a szakértők számából becsli.</p></div>
+      <div><h3>Amit nem modellez</h3><p>Flash attention kernelek különbségei, hőmérsékleti throttling, a lineáris rétegek pontos állapota néhány modellnél. A becslés jellemzően ±20%-on belül van; kalibrálás után pontosabb.</p></div>
+    </div>
+  </section>
+</div>
+
+<footer id="foot">
+  Modell-konfigurációk: Hugging Face config.json és kiadói modellkártyák. Minőség: Artificial Analysis Intelligence Index. API-árak: szolgáltatói listaárak, standard tier. Hardverárak: utcai árak és becslések. Minden érték szerkeszthető; az állapot a link végén (#) tárolódik, így a beállított számítás megosztható.
+</footer>
+
+<!-- ======= ADATFÁJL (exportálható / importálható) ======= -->
+<script type="application/json" id="llm-data">
+{
+  "version": "2026-10-17",
+  "models": [
+    {"id":"qwen35_9b","name":"Qwen3.5-9B","note":"Hibrid: 8 teljes figyelmű + 24 Gated DeltaNet réteg, beépített MTP. 2026 február.",
+     "total":9.0,"active":9.0,"host":0,"vocab":248320,"maxCtx":262144,"nativeBits":null,
+     "full":{"n":8,"kv":4,"hd":256,"cap":0},"swa":null,"mla":null,"lin":{"n":24,"state":50331648},
+     "q":null,"qv":"","spec":{"kind":"MTP","L":1.9,"ov":0.10,"mem":0.3}},
+    {"id":"gemma4_26b","name":"Gemma 4 26B-A4B (MoE)","note":"25 SWA (1024) + 5 globális réteg, 3,8B aktív, MTP draft. Apache 2.0, 2026 április.",
+     "total":26.0,"active":3.8,"host":0,"vocab":262144,"maxCtx":262144,"nativeBits":null,
+     "full":{"n":5,"kv":2,"hd":512,"cap":0},"swa":{"n":25,"kv":8,"hd":256,"win":1024},"mla":null,"lin":null,
+     "q":31,"qv":"*","spec":{"kind":"MTP","L":1.9,"ov":0.12,"mem":0.5}},
+    {"id":"qwen38_27b","name":"Qwen3.8-27B","note":"Dense hibrid: 16 teljes + 48 Gated DeltaNet réteg, 262k kontextus, beépített MTP. 2026 augusztus.",
+     "total":27.8,"active":27.8,"host":0,"vocab":248320,"maxCtx":262144,"nativeBits":null,
+     "full":{"n":16,"kv":4,"hd":256,"cap":0},"swa":null,"mla":null,"lin":{"n":48,"state":150994944},
+     "q":34,"qv":"","spec":{"kind":"MTP","L":1.9,"ov":0.10,"mem":0.6}},
+    {"id":"gemma4_31b","name":"Gemma 4 31B","note":"50 SWA (1024) + 10 globális réteg (4 KV × 512), MTP draft. Apache 2.0.",
+     "total":30.7,"active":30.7,"host":0,"vocab":262144,"maxCtx":262144,"nativeBits":null,
+     "full":{"n":10,"kv":4,"hd":512,"cap":0},"swa":{"n":50,"kv":16,"hd":256,"win":1024},"mla":null,"lin":null,
+     "q":39,"qv":"*","spec":{"kind":"MTP","L":1.9,"ov":0.10,"mem":0.6}},
+    {"id":"gptoss_20b","name":"gpt-oss-20b (MoE)","note":"12 teljes + 12 SWA (128) réteg, 3,6B aktív, gyárilag MXFP4.",
+     "total":20.9,"active":3.6,"host":0,"vocab":201088,"maxCtx":131072,"nativeBits":5.2,
+     "full":{"n":12,"kv":8,"hd":64,"cap":0},"swa":{"n":12,"kv":8,"hd":64,"win":128},"mla":null,"lin":null,
+     "q":24,"qv":"*","spec":null},
+    {"id":"gptoss_120b","name":"gpt-oss-120b (MoE)","note":"18 teljes + 18 SWA (128) réteg, 5,1B aktív, gyári MXFP4 ≈ 61 GiB.",
+     "total":116.8,"active":5.1,"host":0,"vocab":201088,"maxCtx":131072,"nativeBits":4.47,
+     "full":{"n":18,"kv":8,"hd":64,"cap":0},"swa":{"n":18,"kv":8,"hd":64,"win":128},"mla":null,"lin":null,
+     "q":12,"qv":"","spec":null},
+    {"id":"nemotron_bolt74","name":"Nemotron 3.5 Bolt 74B-A9B","note":"Hibrid Mamba-2 + MoE: 88 réteg, ebből 8 attention (~8 KiB/token KV). Gyári ~2,4 bit (IQ2_XXS szakértők), 22 GB GGUF. 2026. okt. 15. A Mamba-állapot nincs beszámolva.",
+     "total":74.0,"active":9.0,"host":0,"vocab":131072,"maxCtx":262144,"nativeBits":2.38,
+     "full":{"n":8,"kv":2,"hd":128,"cap":0},"swa":null,"mla":null,"lin":{"n":40,"state":0},
+     "q":21.4,"qv":"","spec":{"kind":"LiLiCorr draft (1,1B)","L":4.25,"ov":0.80,"mem":1.2}},
+    {"id":"qwen38_flashnext","name":"Qwen3.8-Flash-Next 125B-A6B","note":"12 ritka figyelmű (QSA, 2048 token olvasás) + 36 GDN réteg; +51B n-gram tábla a rendszer-RAM-ban, 4B MTP modul.",
+     "total":125,"active":6.0,"host":51,"vocab":248320,"maxCtx":262144,"nativeBits":null,
+     "full":{"n":12,"kv":2,"hd":256,"cap":2048},"swa":null,"mla":null,"lin":{"n":36,"state":113246208},
+     "q":40,"qv":"","spec":{"kind":"MTP3","L":2.5,"ov":0.20,"mem":2.4}},
+    {"id":"glm53_flash","name":"GLM-5.3-Flash 320B-A18B","note":"11 MLA/DSA réteg (512 latens, top-2048) + 34 KDA lineáris réteg, NextN draft. MIT, 2026 augusztus. A KDA-állapot nincs beszámolva.",
+     "total":320,"active":18,"host":0,"vocab":151552,"maxCtx":1048576,"nativeBits":null,
+     "full":null,"swa":null,"mla":{"n":11,"dim":512,"cap":2048},"lin":null,
+     "q":42,"qv":"","spec":{"kind":"NextN","L":1.9,"ov":0.10,"mem":2.0}},
+    {"id":"custom","name":"Egyéni (dense transzformer)","note":"Saját modell: töltsd be Hugging Face-ről, vagy írd be a config.json értékeit az architektúra részleteinél.",
+     "total":8,"active":8,"host":0,"vocab":152064,"maxCtx":131072,"nativeBits":null,
+     "full":{"n":32,"kv":8,"hd":128,"cap":0},"swa":null,"mla":null,"lin":null,
+     "q":null,"qv":"","spec":null}
+  ],
+  "hardware": [
+    {"id":"cpu_desk","plat":"cpu","type":"cpu","name":"Asztali PC, 2×DDR5-6000, 96 GB","mem":88,"bw":96,"eff":0.6,"tf":1.5,"count":1,"sys":0,"sysbw":96,"price":2500,"est":true,"wl":180,"wi":60,"note":"Kétcsatornás DDR5: 6000 MT/s × 8 B × 2 = 96 GB/s. Kis modellekhez és MoE-hez."},
+    {"id":"cpu_epyc","plat":"cpu","type":"cpu","name":"AMD EPYC, 12×DDR5-6000, 768 GB","mem":740,"bw":576,"eff":0.55,"tf":8,"count":1,"sys":0,"sysbw":576,"price":25000,"est":true,"wl":500,"wi":150,"note":"12 csatorna × 48 GB/s. Nagy MoE-k CPU-n; a prefill lassú, egy GPU sokat segít."},
+    {"id":"rtx3090","plat":"nvidia","type":"dgpu","name":"RTX 3090 24 GB (használt)","vram":24,"bw":936,"eff":0.75,"tf":71,"count":1,"sys":64,"sysbw":96,"price":1100,"est":true,"wl":350,"wi":30,"note":"A legjobb GB/s per dollár használtan."},
+    {"id":"rtx5090","plat":"nvidia","type":"dgpu","name":"RTX 5090 32 GB","vram":32,"bw":1792,"eff":0.75,"tf":209,"count":1,"sys":64,"sysbw":96,"price":7400,"est":false,"wl":575,"wi":40,"note":"Listaár $1999, utcai ár 2026 októberben ~$7400."},
+    {"id":"rtx5090x2","plat":"nvidia","type":"dgpu","name":"2× RTX 5090 (64 GB)","vram":32,"bw":1792,"eff":0.75,"tf":209,"count":2,"sys":128,"sysbw":96,"price":14800,"est":false,"wl":1150,"wi":80,"note":"Rétegenkénti elosztásnál a memória összeadódik, a sebesség nem."},
+    {"id":"rtxpro6000","plat":"nvidia","type":"dgpu","name":"RTX PRO 6000 Blackwell 96 GB","vram":96,"bw":1792,"eff":0.75,"tf":250,"count":1,"sys":128,"sysbw":96,"price":17000,"est":false,"wl":600,"wi":50,"note":"96 GB GDDR7 egy kártyán. Bérelve ~$1,5–3/óra."},
+    {"id":"dgx_spark","plat":"unified","type":"unified","name":"NVIDIA DGX Spark 128 GB","mem":115,"bw":273,"eff":0.7,"tf":100,"count":1,"sys":0,"sysbw":273,"price":6950,"est":false,"wl":170,"wi":35,"note":"GB10, 273 GB/s. Nagy MoE-khez jó, nagy dense modellhez lassú."},
+    {"id":"rtx_spark","plat":"unified","type":"unified","name":"RTX Spark laptop 128 GB","mem":110,"bw":300,"eff":0.7,"tf":100,"count":1,"sys":0,"sysbw":300,"price":null,"est":true,"wl":120,"wi":12,"note":"~300 GB/s LPDDR5X. 2026. okt. 16-tól kapható, írd be az árat."},
+    {"id":"rx7900xtx","plat":"amd","type":"dgpu","name":"Radeon RX 7900 XTX 24 GB","vram":24,"bw":960,"eff":0.7,"tf":123,"count":1,"sys":64,"sysbw":96,"price":1200,"est":true,"wl":355,"wi":30,"note":"ROCm Linuxon, Vulkan backend mindenhol."},
+    {"id":"strix_halo","plat":"amd","type":"unified","name":"Ryzen AI Max+ 395 (Strix Halo) 128 GB","mem":110,"bw":256,"eff":0.7,"tf":59,"count":1,"sys":0,"sysbw":256,"price":2900,"est":true,"wl":140,"wi":15,"note":"Linuxon ~110 GiB adható a GPU-nak, Windowson 96."},
+    {"id":"m5max128","plat":"apple","type":"apple","name":"Mac Studio M5 Max 128 GB","mem":96,"bw":614,"eff":0.7,"tf":70,"count":1,"sys":0,"sysbw":614,"price":4500,"est":true,"wl":150,"wi":12,"note":"Alapból a RAM ~75%-a jut a GPU-nak; sysctl iogpu.wired_limit_mb-vel ~120 GiB-ig emelhető."},
+    {"id":"m5ultra96","plat":"apple","type":"apple","name":"Mac Studio M5 Ultra 96 GB","mem":72,"bw":1200,"eff":0.7,"tf":140,"count":1,"sys":0,"sysbw":1200,"price":5499,"est":false,"wl":250,"wi":15,"note":"1,2 TB/s, alapár $5499."},
+    {"id":"m5ultra512","plat":"apple","type":"apple","name":"Mac Studio M5 Ultra 512 GB","mem":440,"bw":1200,"eff":0.7,"tf":140,"count":1,"sys":0,"sysbw":1200,"price":null,"est":true,"wl":300,"wi":20,"note":"2026. október végére ígért konfiguráció, ár még nincs."},
+    {"id":"custom_hw","plat":"custom","type":"dgpu","name":"Egyéni hardver","vram":24,"bw":1000,"eff":0.75,"tf":100,"count":1,"sys":64,"sysbw":96,"price":2000,"est":true,"wl":400,"wi":40,"note":"Írd be a saját értékeidet."}
+  ],
+  "cloud": [
+    {"grp":"Anthropic","id":"fable51","name":"Claude Fable 5.1","pin":10,"pout":50,"pc":0.25,"q":null},
+    {"grp":"Anthropic","id":"opus55","name":"Claude Opus 5.5","pin":4,"pout":20,"pc":0.20,"q":57.6},
+    {"grp":"Anthropic","id":"sonnet55","name":"Claude Sonnet 5.5","pin":2,"pout":10,"pc":0.10,"q":56},
+    {"grp":"Anthropic","id":"haiku55","name":"Claude Haiku 5.5 (≤100k prompt)","pin":0.10,"pout":0.50,"pc":0.01,"q":43},
+    {"grp":"OpenAI","id":"gpt6astra","name":"GPT-6 Astra","pin":10,"pout":50,"pc":1.0,"q":52.7},
+    {"grp":"OpenAI","id":"gpt61sol","name":"GPT-6.1 Sol","pin":2,"pout":10,"pc":0.10,"q":null},
+    {"grp":"OpenAI","id":"gpt6luna","name":"GPT-6 Luna","pin":0.10,"pout":0.50,"pc":0.01,"q":38},
+    {"grp":"OpenAI","id":"gpt54mini","name":"GPT-5.4 mini","pin":0.75,"pout":4.5,"pc":0.075,"q":null},
+    {"grp":"Google","id":"gem4argon","name":"Gemini 4 Argon (előzetes, bevezető ár)","pin":2,"pout":10,"pc":null,"q":52.6},
+    {"grp":"Google","id":"gem31pro","name":"Gemini 3.1 Pro (≤200k)","pin":2,"pout":12,"pc":null,"q":null},
+    {"grp":"Google","id":"gem38flash","name":"Gemini 3.8 Flash","pin":0.75,"pout":3.75,"pc":null,"q":41},
+    {"grp":"Google","id":"gem31lite","name":"Gemini 3.1 Flash-Lite","pin":0.25,"pout":1.5,"pc":null,"q":null},
+    {"grp":"Nyílt súlyú modell API-n","id":"dsv4flash","name":"DeepSeek V4 Flash","pin":0.14,"pout":0.28,"pc":0.0028,"q":39},
+    {"grp":"Nyílt súlyú modell API-n","id":"glm53flash","name":"GLM-5.3-Flash (Z.ai)","pin":0.15,"pout":0.50,"pc":null,"q":42},
+    {"grp":"Egyéni","id":"custom_cloud","name":"Egyéni ár","pin":1,"pout":5,"pc":null,"q":null}
+  ]
+}
+</script>
+
+<script>
+(function(){
+"use strict";
+const GiB = 1073741824;
+const $ = id => document.getElementById(id);
+const clone = o => JSON.parse(JSON.stringify(o));
+const LS = {
+  get(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ---------- ADATOK ---------- */
+const BUILTIN = JSON.parse($("llm-data").textContent);
+let DATA, DATA_SRC;
+function validData(d){ return d && Array.isArray(d.models) && Array.isArray(d.hardware) && Array.isArray(d.cloud) && d.models.length && d.hardware.length && d.cloud.length; }
+function loadData(){
+  const ov = LS.get("llm-data-override");
+  if(validData(ov)){ DATA = ov; DATA_SRC = "importált"; } else { DATA = clone(BUILTIN); DATA_SRC = "beépített"; }
+  const user = LS.get("llm-user-models") || [];
+  user.forEach(u => { if(!DATA.models.find(m=>m.id===u.id)) DATA.models.push(u); });
+}
+loadData();
+let MODELS = DATA.models, HW = DATA.hardware, CLOUD = DATA.cloud;
+
+const QUANTS = [
+  {id:"native", label:"Gyári (natív)", bits:null, note:"a kiadott checkpoint mérete"},
+  {id:"bf16", label:"BF16 / FP16", bits:16, note:"eredeti pontosság"},
+  {id:"q8", label:"Q8_0", bits:8.5, note:"gyakorlatilag veszteségmentes"},
+  {id:"fp8", label:"FP8 (vLLM)", bits:8.0, note:"Ada/Hopper/Blackwell"},
+  {id:"q6k", label:"Q6_K", bits:6.56, note:"nagyon jó minőség"},
+  {id:"q5km", label:"Q5_K_M", bits:5.69, note:"kiegyensúlyozott"},
+  {id:"q4km", label:"Q4_K_M", bits:4.85, note:"a szokásos választás"},
+  {id:"nvfp4", label:"NVFP4", bits:4.5, note:"Blackwell natív 4 bit"},
+  {id:"mxfp4", label:"MXFP4", bits:4.25, note:"OCP 4 bit, 32-es blokk"},
+  {id:"iq4xs", label:"IQ4_XS", bits:4.25, note:"kisebb 4 bites GGUF"},
+  {id:"q3km", label:"Q3_K_M", bits:3.91, note:"érezhető romlás"},
+  {id:"iq2m", label:"IQ2_M", bits:2.7, note:"csak nagy MoE-hez"}
+];
+const KVTYPES = [
+  {id:"f16", label:"F16 / BF16", bpe:2.0, note:"alapértelmezett"},
+  {id:"q8", label:"Q8_0 (llama.cpp)", bpe:1.0625, note:"≈ −47%, elhanyagolható romlás"},
+  {id:"fp8", label:"FP8 (vLLM)", bpe:1.0, note:"−50%"},
+  {id:"q4", label:"Q4_0 (llama.cpp)", bpe:0.5625, note:"−72%, már mérhető romlás"}
+];
+const PLATS = [["all","Mind"],["cpu","CPU"],["nvidia","NVIDIA"],["amd","AMD"],["apple","Apple"],["unified","Unified"]];
+
+/* ---------- ÁLLAPOT ---------- */
+const S = {
+  presetId:"qwen38_27b", model:null, quant:"q4km", kv:"f16", ctx:32768, par:1,
+  plat:"all", hwId:"rtx5090", hw:null, tp:0, margin:0.1, prompt:4000,
+  spec:false, specL:1.9, specOv:10, cal:{},
+  cloud:"sonnet55", cin:2, cout:10, ccache:0.10, rin:10, rout:1, rcache:60,
+  kwh:70, fx:318, price:null, wl:null, wi:null, amort:36, resale:25, ops:0, rent:1.8,
+  edited:false, hwEdited:false
+};
+
+/* ---------- FORMÁZÁS ---------- */
+const nf = (v,d=1) => (isFinite(v)?new Intl.NumberFormat("hu-HU",{minimumFractionDigits:d,maximumFractionDigits:d}).format(v):"–");
+const ni = v => new Intl.NumberFormat("hu-HU",{maximumFractionDigits:0}).format(Math.round(v));
+const gib = b => nf(b/GiB, b/GiB >= 100 ? 0 : (b/GiB >= 10 ? 1 : 2));
+const ft = v => {
+  if(!isFinite(v)) return "–";
+  const a = Math.abs(v);
+  if(a >= 1e6) return nf(v/1e6, a>=1e8?0:1)+" M Ft";
+  if(a >= 1e4) return nf(v/1e3,0)+" e Ft";
+  return ni(v)+" Ft";
+};
+const usd = v => v==null?"?":"$"+new Intl.NumberFormat("en-US",{maximumFractionDigits:v<10?2:0}).format(v);
+const kctx = t => {
+  if(!isFinite(t)) return "∞";
+  if(t >= 1048576) return nf(t/1048576, t%1048576?1:0)+"M";
+  if(t >= 1024) return ni(t/1024)+"k";
+  return ni(t);
+};
+const kb = b => b >= 1024*1024 ? nf(b/1048576,2)+" MiB" : nf(b/1024,1)+" KiB";
+const tps = v => !isFinite(v)||v<=0 ? "–" : (v>=100?ni(v):nf(v,1));
+const secs = s => !isFinite(s) ? "–" : s < 1 ? nf(s*1000,0)+" ms" : s < 120 ? nf(s,1)+" s" : nf(s/60,1)+" perc";
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const qtxt = m => m && m.q!=null ? `AA ${nf(m.q, m.q%1?1:0)}${m.qv||""}` : "AA –";
+
+/* ---------- SZÁMÍTÁS ---------- */
+function bitsFor(m, qid){
+  const q = QUANTS.find(x=>x.id===qid) || QUANTS[6];
+  if(q.id==="native") return m.nativeBits || 16;
+  return q.bits;
+}
+function kvSeqBytes(m, ctx, bpe){
+  let b = 0;
+  if(m.full && m.full.n) b += m.full.n*2*m.full.kv*m.full.hd*ctx*bpe;
+  if(m.swa && m.swa.n) b += m.swa.n*2*m.swa.kv*m.swa.hd*Math.min(ctx,m.swa.win||ctx)*bpe;
+  if(m.mla && m.mla.n) b += m.mla.n*m.mla.dim*ctx*bpe;
+  if(m.lin && m.lin.n) b += m.lin.state||0;
+  return b;
+}
+function kvReadBytes(m, fill, bpe){
+  let b = 0;
+  if(m.full && m.full.n){ const t = m.full.cap ? Math.min(fill,m.full.cap) : fill; b += m.full.n*2*m.full.kv*m.full.hd*t*bpe; }
+  if(m.swa && m.swa.n) b += m.swa.n*2*m.swa.kv*m.swa.hd*Math.min(fill,m.swa.win||fill)*bpe;
+  if(m.mla && m.mla.n){ const t = m.mla.cap ? Math.min(fill,m.mla.cap) : fill; b += m.mla.n*m.mla.dim*t*bpe; }
+  if(m.lin && m.lin.n) b += m.lin.state||0;
+  return b;
+}
+function kvGrowth(m, bpe){
+  let g = 0;
+  if(m.full && m.full.n) g += m.full.n*2*m.full.kv*m.full.hd*bpe;
+  if(m.mla && m.mla.n) g += m.mla.n*m.mla.dim*bpe;
+  return g;
+}
+function poolGiB(h){ return h.type==="dgpu" ? h.vram*h.count - 0.5 : h.mem; }
+function specMul(m, s){
+  if(!s.spec || !m.spec) return 1;
+  return Math.max(1, s.specL/(1 + s.specOv/100));
+}
+
+// opts.raw: kalibrálás és spekulatív dekódolás nélkül
+function analyze(m, s, h, opts){
+  opts = opts || {};
+  const bits = bitsFor(m, s.quant);
+  const bpe = (KVTYPES.find(k=>k.id===s.kv)||KVTYPES[0]).bpe;
+  const useSpec = !opts.raw && s.spec && m.spec;
+  const wB = m.total*1e9*bits/8 + (useSpec ? (m.spec.mem||0)*GiB : 0);
+  const hostB = (m.host||0)*1e9*bits/8;
+  const actB = Math.min(m.active, m.total)*1e9*bits/8;
+  const kvSeq = kvSeqBytes(m, s.ctx, bpe);
+  const kv = kvSeq*s.par;
+  const base = h.type==="cpu" ? 0.25 : (h.type==="dgpu" ? 0.6 : 0.4);
+  const ovh = base*GiB + 512*m.vocab*4 + 0.25*GiB;
+  const discrete = h.type==="dgpu";
+  const U = poolGiB(h)*GiB;
+  const poolNeed = wB + kv + ovh + (discrete ? 0 : hostB);
+  const need = poolNeed*(1+s.margin);
+
+  let status = "fit", fGPU = 1, spill = 0;
+  const sysFree = Math.max(0,(h.sys||0)-8)*GiB;
+  if(discrete && hostB > sysFree) status = "nofit";
+  else if(need > U){
+    if(discrete){
+      const gpuW = U/(1+s.margin) - kv - ovh;
+      spill = wB - gpuW;
+      if(gpuW > 0 && spill*(1+s.margin) <= sysFree - hostB){ status = "offload"; fGPU = gpuW/wB; }
+      else status = "nofit";
+    } else status = "nofit";
+  }
+
+  const cal = opts.raw ? {tg:1,pp:1} : Object.assign({tg:1,pp:1}, (S.cal||{})[h.id]);
+  const multi = discrete && h.count > 1;
+  const bw = h.bw*1e9*(multi && s.tp ? h.count*0.85 : 1);
+  const eff = h.eff;
+  const moe = m.active < m.total*0.8;
+  const effW = eff*(moe ? 0.65 : 1);
+  const sysbw = (h.sysbw||96)*1e9*0.6;
+  const nLayers = (m.full?m.full.n:0)+(m.swa?m.swa.n:0)+(m.mla?m.mla.n:0)+(m.lin?m.lin.n:0);
+  const tFix = nLayers*(h.type==="cpu" ? 5e-6 : 15e-6);
+  const tW = actB*fGPU/(bw*effW) + actB*(1-fGPU)/sysbw + tFix;
+  const sm = useSpec ? specMul(m, s) : 1;
+  const decodeAt = fill => sm*cal.tg/(tW + kvReadBytes(m, Math.max(1,fill), bpe)/(bw*eff));
+  const tpsEmpty = decodeAt(Math.min(1024, s.ctx));
+  const tpsFull = decodeAt(s.ctx);
+  const tpsBench = cal.tg/(tW + kvReadBytes(m, 128, bpe)/(bw*eff)); // tg128-hoz
+
+  const tflops = h.tf*1e12*(multi && s.tp ? h.count*0.85 : 1);
+  let prefillTps = tflops*0.35/(2*Math.min(m.active,m.total)*1e9);
+  if(status === "offload") prefillTps = 1/(1/prefillTps + (wB*(1-fGPU))/25e9/512);
+  prefillTps *= cal.pp;
+  const ttft = s.prompt/prefillTps;
+
+  const N = s.par;
+  const wRead = moe ? Math.min(wB, actB*Math.pow(N,0.6)) : actB;
+  const tWN = wRead*fGPU/(bw*effW) + wRead*(1-fGPU)/sysbw + tFix;
+  const tKVN = N*kvReadBytes(m, s.ctx/2, bpe)/(bw*eff);
+  const tC = N*2*Math.min(m.active,m.total)*1e9/(tflops*0.5);
+  const step = Math.max(tWN + tKVN, tC);
+  const specAgg = 1 + (sm-1)/N;
+  const agg = N/step*cal.tg*specAgg, perUser = agg/N;
+
+  const g = kvGrowth(m, bpe);
+  const swaConst = (m.swa && m.swa.n) ? m.swa.n*2*m.swa.kv*m.swa.hd*(m.swa.win||0)*bpe : 0;
+  const linConst = (m.lin && m.lin.n) ? (m.lin.state||0) : 0;
+  let maxCtx = Math.floor((U/(1+s.margin) - wB - ovh - (discrete?0:hostB) - N*(swaConst+linConst)) / (g*N));
+  if(g === 0) maxCtx = (U/(1+s.margin) - wB - ovh) > 0 ? m.maxCtx : 0;
+  maxCtx = Math.max(0, Math.min(maxCtx, m.maxCtx));
+
+  return { bits, bpe, wB, hostB, actB, kv, kvSeq, ovh, need, poolNeed, U, status, fGPU, spill, discrete,
+    tpsEmpty, tpsFull, tpsBench, prefillTps, ttft, agg, perUser, maxCtx, g, bw, multi, sm, cal, useSpec };
+}
+
+/* ---------- config.json ÉRTELMEZŐ ---------- */
+function parseConfig(raw, apiTotal, name){
+  if(!raw || typeof raw !== "object") throw new Error("Nem érvényes JSON objektum.");
+  let c = raw;
+  if(raw.text_config) c = Object.assign({}, raw, raw.text_config);
+  else if(raw.llm_config) c = Object.assign({}, raw, raw.llm_config);
+  else if(raw.language_config) c = Object.assign({}, raw, raw.language_config);
+  const L = c.num_hidden_layers ?? c.n_layer ?? c.num_layers ?? c.n_layers;
+  const H = c.hidden_size ?? c.d_model ?? c.n_embd ?? c.dim;
+  const nH = c.num_attention_heads ?? c.n_head ?? c.n_heads;
+  if(!L || !H || !nH) throw new Error("Hiányzik a num_hidden_layers, a hidden_size vagy a num_attention_heads.");
+  const kv = c.num_key_value_heads ?? c.num_kv_heads ?? c.n_kv_heads ?? (c.multi_query ? 1 : nH);
+  const hd = c.head_dim ?? Math.round(H/nH);
+  let nFull = L, nSwa = 0, nLin = 0, nMoeP = null, nDenseP = null;
+  let win = c.sliding_window || 0;
+  const lt = c.layer_types || c.layers_block_type;
+  const pat = typeof c.hybrid_override_pattern === "string" ? c.hybrid_override_pattern : null;
+  if(Array.isArray(lt)){
+    nFull = 0;
+    lt.forEach(t => {
+      t = String(t).toLowerCase();
+      if(/slid|local|chunk/.test(t)) nSwa++;
+      else if(/linear|mamba|delta|kda|ssm|recurrent|lightning/.test(t)) nLin++;
+      else if(/attn|attention|full|global/.test(t)) nFull++;
+    });
+  } else if(pat){
+    nFull = (pat.match(/\*/g)||[]).length;
+    nLin = (pat.match(/M/g)||[]).length;
+    nMoeP = (pat.match(/E/g)||[]).length;
+    nDenseP = (pat.match(/-/g)||[]).length;
+  } else if(c.full_attention_interval){
+    nFull = Math.floor(L/c.full_attention_interval); nLin = L - nFull;
+  } else if(c.sliding_window_pattern && win && c.use_sliding_window !== false){
+    nFull = Math.floor(L/c.sliding_window_pattern); nSwa = L - nFull;
+  }
+  if(nSwa && !win) win = 4096;
+  const fkv = c.num_global_key_value_heads ?? kv;
+  const fhd = c.global_head_dim ?? hd;
+  const cap = c.index_topk || 0;
+  let full = null, mla = null;
+  if(c.kv_lora_rank){ if(nFull) mla = {n:nFull, dim:c.kv_lora_rank + (c.qk_rope_head_dim||0), cap:cap}; }
+  else if(nFull) full = {n:nFull, kv:fkv, hd:fhd, cap:cap};
+  const swa = nSwa ? {n:nSwa, kv:kv, hd:hd, win:win} : null;
+  let st = 0;
+  if(nLin){
+    if(c.linear_num_value_heads) st = c.linear_num_value_heads*(c.linear_key_head_dim||128)*(c.linear_value_head_dim||128)*4;
+    else if(c.mamba_num_heads || c.mamba_n_heads) st = (c.mamba_num_heads||c.mamba_n_heads)*(c.mamba_head_dim||64)*(c.ssm_state_size||c.mamba_d_state||128)*4;
+    else if(c.ssm_state_size || c.state_size) st = (c.mamba_expand||2)*H*(c.ssm_state_size||c.state_size)*4;
+  }
+  const lin = nLin ? {n:nLin, state:nLin*st} : null;
+
+  const V = c.vocab_size || 152064;
+  const I = c.intermediate_size || 4*H;
+  const E = c.num_experts ?? c.num_local_experts ?? c.n_routed_experts ?? c.moe_num_experts ?? 0;
+  const k = c.num_experts_per_tok ?? c.experts_per_token ?? c.num_experts_per_token ?? c.moe_topk ?? c.moe_k ?? 0;
+  const mI = c.moe_intermediate_size || c.expert_intermediate_size || I;
+  const shared = c.n_shared_experts ?? (c.shared_expert_intermediate_size ? 1 : 0);
+  const sI = c.shared_expert_intermediate_size || mI;
+  const dense0 = c.first_k_dense_replace || 0;
+  const attnP = H*nH*hd*2 + 2*H*kv*hd;
+  let attnTotal, moeLayers, denseLayers;
+  if(pat){ attnTotal = nFull*attnP + nLin*6*H*H; moeLayers = E ? nMoeP : 0; denseLayers = nDenseP; }
+  else { attnTotal = L*attnP; moeLayers = E ? L - dense0 : 0; denseLayers = L - moeLayers; }
+  const mlpDense = denseLayers*3*H*I;
+  const expertP = E ? moeLayers*E*3*H*mI : 0;
+  const sharedP = E ? moeLayers*shared*3*H*sI : 0;
+  const embed = V*H*(c.tie_word_embeddings ? 1 : 2);
+  const total = attnTotal + mlpDense + expertP + sharedP + embed;
+  const inactive = (E && k) ? moeLayers*(E-k)*3*H*mI : 0;
+  let totalB = total/1e9, activeB = (total - inactive)/1e9, src = "configból becsülve";
+  if(apiTotal && apiTotal > 1e8){ const r = apiTotal/1e9/totalB; totalB = apiTotal/1e9; activeB = Math.min(totalB, activeB*r); src = "safetensors metaadat"; }
+  const hasMtp = c.mtp_num_hidden_layers || c.num_nextn_predict_layers;
+  const shortName = (name || "Saját modell").split("/").pop();
+  const parts = [];
+  if(full) parts.push(`${full.n} teljes (${full.kv}×${full.hd})`);
+  if(swa) parts.push(`${swa.n} SWA (${swa.win})`);
+  if(mla) parts.push(`${mla.n} MLA (${mla.dim})`);
+  if(lin) parts.push(`${lin.n} lineáris/Mamba`);
+  return {
+    id: "hf:" + (name || ("cfg-" + Date.now())), name: shortName, user: true,
+    note: `Betöltve: ${name || "beillesztett config"}. Rétegek: ${parts.join(" + ") || L}. Paraméter: ${src}${E?`, MoE ${E} szakértő / ${k} aktív`:""}.`,
+    total: Math.round(totalB*10)/10, active: Math.round(Math.max(0.1,activeB)*10)/10, host: 0,
+    vocab: V, maxCtx: c.max_position_embeddings || c.max_seq_len || c.seq_length || 131072,
+    nativeBits: null, full, swa, mla, lin, q: null, qv: "",
+    spec: hasMtp ? {kind:"MTP", L:1.9, ov:0.10, mem:0.5} : null
+  };
+}
+
+/* ---------- UI ---------- */
+function fillPresetSelect(){
+  const builtin = MODELS.filter(m=>!m.user), user = MODELS.filter(m=>m.user);
+  const opt = m => `<option value="${esc(m.id)}">${esc(m.name)}${m.q!=null?` · AA ${nf(m.q, m.q%1?1:0)}${m.qv||""}`:""}</option>`;
+  $("preset").innerHTML = `<optgroup label="Előre beállított">${builtin.map(opt).join("")}</optgroup>` +
+    (user.length ? `<optgroup label="Saját (Hugging Face / config)">${user.map(opt).join("")}</optgroup>` : "");
+}
+function fillCloudSelect(){
+  const groups = [...new Set(CLOUD.map(c=>c.grp))];
+  $("cloudSel").innerHTML = groups.map(g=>`<optgroup label="${esc(g)}">`+CLOUD.filter(c=>c.grp===g).map(c=>`<option value="${esc(c.id)}">${esc(c.name)} · $${c.pin} / $${c.pout}${c.q!=null?` · AA ${nf(c.q,c.q%1?1:0)}`:""}</option>`).join("")+`</optgroup>`).join("");
+}
+function fillSelects(){
+  fillPresetSelect();
+  $("quant").innerHTML = QUANTS.map(q=>`<option value="${q.id}">${esc(q.label)}</option>`).join("");
+  $("kvType").innerHTML = KVTYPES.map(k=>`<option value="${k.id}">${esc(k.label)}</option>`).join("");
+  fillCloudSelect();
+  $("platSeg").innerHTML = PLATS.map(([v,l])=>`<button data-v="${v}">${l}</button>`).join("");
+  $("paramChips").innerHTML = [9,27,70,120,320].map(b=>`<button class="chip" data-b="${b}">${b}B</button>`).join("");
+  $("ctxChips").innerHTML = [4096,8192,32768,131072,262144].map(c=>`<button class="chip" data-c="${c}">${kctx(c)}</button>`).join("");
+}
+function fillHwSelect(){
+  const list = HW.filter(h => S.plat==="all" || h.plat===S.plat || h.plat==="custom");
+  $("hwSel").innerHTML = list.map(h=>`<option value="${esc(h.id)}">${esc(h.name)}${S.cal[h.id]?" ✓":""}</option>`).join("");
+  if(!list.find(h=>h.id===S.hwId)){ loadHw(list[0].id); }
+  $("hwSel").value = S.hwId;
+}
+const sliderToB = v => 0.5*Math.pow(2000, v/1000);
+const bToSlider = b => Math.round(1000*Math.log(Math.max(0.5,b)/0.5)/Math.log(2000));
+
+function loadPreset(id){
+  const m = MODELS.find(x=>x.id===id) || MODELS[0];
+  S.presetId = m.id; S.model = clone(m); S.edited = false;
+  if(S.quant==="native" && !m.nativeBits) S.quant = "q4km";
+  if(m.nativeBits && S.quant==="q4km") S.quant = "native";
+  if(S.ctx > m.maxCtx) S.ctx = m.maxCtx;
+  if(m.spec){ S.specL = m.spec.L; S.specOv = Math.round(m.spec.ov*100); } else S.spec = false;
+}
+function loadHw(id){
+  const h = HW.find(x=>x.id===id) || HW[0];
+  S.hwId = h.id; S.hw = clone(h); S.hwEdited = false;
+  S.price = h.price; S.wl = h.wl; S.wi = h.wi;
+}
+
+function syncInputs(){
+  const m = S.model, h = S.hw;
+  $("preset").value = S.presetId;
+  $("paramRange").value = bToSlider(m.total);
+  $("quant").value = S.quant;
+  $("quant").querySelector('option[value="native"]').disabled = !m.nativeBits;
+  $("kvType").value = S.kv;
+  $("ctx").value = S.ctx; $("par").value = S.par;
+  $("a_active").value = m.active; $("a_host").value = m.host||0;
+  $("a_fn").value = m.full?m.full.n:0; $("a_fkv").value = m.full?m.full.kv:0; $("a_fhd").value = m.full?m.full.hd:0;
+  $("a_sn").value = m.swa?m.swa.n:0; $("a_skvd").value = m.swa?`${m.swa.kv}x${m.swa.hd}`:""; $("a_sw").value = m.swa?m.swa.win:0;
+  $("a_mn").value = m.mla?m.mla.n:0; $("a_md").value = m.mla?m.mla.dim:0;
+  $("a_cap").value = (m.full&&m.full.cap)||(m.mla&&m.mla.cap)||0;
+  $("a_vocab").value = m.vocab; $("a_maxctx").value = m.maxCtx;
+  $("hwSel").value = S.hwId;
+  $("h_mem").value = Math.round(poolGiB(h)*10)/10; $("h_bw").value = h.bw; $("h_tf").value = h.tf;
+  $("h_sys").value = h.sys||0; $("h_sysbw").value = h.sysbw||96;
+  $("margin").value = String(S.margin); $("prompt").value = S.prompt;
+  $("specL").value = S.specL; $("specOv").value = S.specOv;
+  $("cloudSel").value = S.cloud; $("c_in").value = S.cin; $("c_out").value = S.cout; $("c_cache").value = S.ccache;
+  $("r_in").value = S.rin; $("r_out").value = S.rout; $("r_cache").value = S.rcache;
+  $("r_kwh").value = S.kwh; $("r_fx").value = S.fx; $("h_price").value = S.price==null?"":S.price;
+  $("h_wl").value = S.wl; $("h_wi").value = S.wi; $("r_amort").value = S.amort; $("r_resale").value = S.resale;
+  $("r_ops").value = S.ops; $("r_rent").value = S.rent;
+  [...$("platSeg").children].forEach(b=>b.classList.toggle("on", b.dataset.v===S.plat));
+  [...$("tpSeg").children].forEach(b=>b.classList.toggle("on", +b.dataset.v===S.tp));
+  const c = S.cal[S.hwId]; $("calPp").value = c && c.mpp ? c.mpp : ""; $("calTg").value = c && c.mtg ? c.mtg : "";
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  const m = S.model, h = S.hw;
+  const a = analyze(m, S, h);
+  const q = QUANTS.find(x=>x.id===S.quant), kvt = KVTYPES.find(k=>k.id===S.kv);
+
+  $("pillQuant").textContent = `${q.id==="native"?"Gyári "+nf(a.bits,2)+" bit":q.label} · KV ${kvt.id}`;
+  $("pillData").textContent = `adatok: ${DATA.version||"?"}${DATA_SRC==="importált"?" (importált)":""}`;
+  $("modelTag").innerHTML = esc(m.active<m.total*0.8 ? `${nf(m.total,m.total<100?1:0)}B · ${nf(m.active,1)}B aktív` : `${nf(m.total,m.total<100?1:0)}B dense`) + (S.edited?'<span class="edited">módosítva</span>':"");
+  $("qTag").textContent = qtxt(m);
+  $("presetNote").textContent = m.note;
+  $("paramVal").textContent = (m.total<100?nf(m.total,1):ni(m.total))+"B";
+  $("quantHint").textContent = `${nf(a.bits,2)} bit/paraméter · ${q.note}`;
+  $("kvHint").textContent = `${nf(a.bpe,3)} bájt/elem · ${kvt.note}`;
+  [...$("ctxChips").children].forEach(c=>c.classList.toggle("on", +c.dataset.c===S.ctx));
+  [...$("paramChips").children].forEach(c=>c.classList.toggle("on", Math.abs(+c.dataset.b - m.total) < 0.5));
+  $("ctxWarn").textContent = S.ctx > m.maxCtx ? `A modell natív maximuma ${kctx(m.maxCtx)} token.` : "";
+
+  let fb = "";
+  if(m.full && m.full.n){
+    const d = m.full.kv*m.full.hd;
+    fb += `kv_dim = kv_heads × head_dim<br>${m.full.kv} × ${m.full.hd} = <span class="lime">${ni(d)}</span><br>`;
+    fb += `KV/token = 2 × ${m.full.n} réteg × ${ni(d)} × ${nf(a.bpe,2)} B = <span class="lime">${kb(2*m.full.n*d*a.bpe)}</span>`;
+  }
+  if(m.mla && m.mla.n) fb += `${fb?"<br>":""}MLA: ${m.mla.n} réteg × ${m.mla.dim} latens × ${nf(a.bpe,2)} B = <span class="lime">${kb(m.mla.n*m.mla.dim*a.bpe)}</span>/token`;
+  if(m.swa && m.swa.n) fb += `<br>+ SWA: ${m.swa.n} réteg, legfeljebb ${ni(m.swa.win)} token → ${gib(m.swa.n*2*m.swa.kv*m.swa.hd*Math.min(S.ctx,m.swa.win)*a.bpe)} GiB`;
+  if(m.lin && m.lin.n) fb += `<br>+ ${m.lin.n} lineáris réteg: ${m.lin.state?`fix ${kb(m.lin.state)} állapot / kérés`:"állapot nincs beszámolva"}`;
+  if(m.host) fb += `<br>+ ${ni(m.host)}B paraméter a rendszer-RAM-ban: ${gib(a.hostB)} GiB`;
+  if(a.useSpec && m.spec.mem) fb += `<br>+ draft (${esc(m.spec.kind)}): ${nf(m.spec.mem,1)} GiB`;
+  $("formulaBox").innerHTML = fb || "–";
+
+  $("hwTag").textContent = `${ni(poolGiB(h))} GiB · ${ni(h.bw*(a.multi&&S.tp?h.count*0.85:1))} GB/s`;
+  $("hwNote").innerHTML = esc(h.note) + (S.hwEdited?' <span class="edited">módosítva</span>':"");
+  $("dgpuRow").style.display = h.type==="dgpu" ? "" : "none";
+  $("tpRow").style.display = (h.type==="dgpu" && h.count>1) ? "" : "none";
+
+  $("kW").innerHTML = `${gib(a.wB)}<small>GiB</small>`;
+  $("kWs").innerHTML = `${nf(a.wB/1e9,1)} GB (dec) · ${q.id==="native"?"gyári":esc(q.label)}<br>${a.hostB?`+ ${gib(a.hostB)} GiB rendszer-RAM-ban`:`aktív/token: ${gib(a.actB)} GiB`}`;
+  $("kK").innerHTML = `${gib(a.kv)}<small>GiB</small>`;
+  $("kKs").innerHTML = `${kctx(S.ctx)} token × ${S.par} kérés<br>${kvt.id}`;
+  $("kTl").textContent = `Teljes + ${ni(S.margin*100)}%`;
+  $("kT").innerHTML = `${gib(a.need)}<small>GiB</small>`;
+  $("kTs").innerHTML = `ebből ${gib(a.poolNeed)} GiB nettó<br>${esc(h.name)}: ${ni(poolGiB(h))} GiB`;
+  const stTxt = {fit:"● elfér", offload:"● részleges offload", nofit:"● nem fér el"}[a.status];
+  $("kTst").innerHTML = `<span class="status st-${a.status}">${stTxt}</span>`;
+
+  const parts = [
+    {v:a.wB, label:"súly", cls:"seg-w"},
+    {v:a.discrete?0:a.hostB, label:"host", cls:"seg-w"},
+    {v:a.kv, label:"KV", cls:"seg-k"},
+    {v:a.ovh, label:"runtime", cls:"seg-o"}
+  ].filter(p=>p.v>0);
+  const scale = Math.max(a.U, a.poolNeed);
+  let barHtml = "";
+  parts.forEach(p=>{
+    const pct = p.v/scale*100;
+    barHtml += `<div class="${p.cls}" style="width:${pct}%" title="${p.label}: ${gib(p.v)} GiB">${pct>9?`${ni(p.v/a.poolNeed*100)}% ${p.label}`:""}</div>`;
+  });
+  $("memBar").innerHTML = barHtml;
+  if(a.poolNeed > a.U){
+    const over = (a.poolNeed - a.U)/scale*100;
+    $("memBar").insertAdjacentHTML("beforeend", `<div style="position:absolute;left:${a.U/scale*100}%;top:0;bottom:0;width:3px;background:var(--ink)"></div><div class="seg-x" style="position:absolute;right:0;top:0;bottom:0;width:${over}%;opacity:.55"></div>`);
+  }
+  $("memTotal").textContent = `${gib(a.poolNeed)} / ${ni(a.U/GiB)} GiB`;
+  $("memLegend").innerHTML =
+    `<span><i class="dot" style="background:var(--lime)"></i>Súly: <b class="mono">${gib(a.wB)} GiB</b></span>`+
+    `<span><i class="dot" style="background:var(--yellow)"></i>KV: <b class="mono">${gib(a.kv)} GiB</b> (${kctx(S.ctx)})</span>`+
+    `<span><i class="dot" style="background:#d9d6cb"></i>Runtime: <b class="mono">${gib(a.ovh)} GiB</b></span>`+
+    (a.hostB?`<span><i class="dot" style="background:#fff;border-color:var(--line2)"></i>Host RAM: <b class="mono">${gib(a.hostB)} GiB</b></span>`:"")+
+    `<span><i class="dot" style="background:repeating-linear-gradient(135deg,#f6f5f0,#f6f5f0 3px,#d6d3c8 3px,#d6d3c8 5px)"></i>Szabad</span>`;
+  $("mKV").textContent = a.g ? kb(a.g) : "fix (SWA/lineáris)";
+  const free = a.U - a.need;
+  $("mHead").textContent = (free>=0?"+":"−")+gib(Math.abs(free))+" GiB";
+  $("mHead").style.color = free>=0 ? "var(--green)" : "var(--red)";
+  $("mCtx").textContent = a.maxCtx>0 ? kctx(a.maxCtx)+" tok" : "nem fér el";
+  $("memFoot").textContent = `* ${h.name} · ${ni(poolGiB(h))} GiB használható${h.type==="apple"?" (a GPU-limit emelhető)":""}${S.par>1?` · ${S.par} párhuzamos kérésre`:""}${a.status==="offload"?` · a súlyok ${ni(a.fGPU*100)}%-a fér a GPU-ra`:""}`;
+
+  // sebesség
+  const off = a.status==="nofit";
+  const c = S.cal[h.id];
+  $("calBadge").innerHTML = c ? `<span class="calbadge">kalibrált</span>` : "";
+  $("sMain").textContent = off ? "–" : tps(a.tpsEmpty);
+  $("sStats").innerHTML = off ? `<div><span>Nem fut ezen a hardveren</span><b>–</b></div>` :
+    `<div><span>Teli kontextusnál (${kctx(S.ctx)})</span><b>${tps(a.tpsFull)} tok/s</b></div>`+
+    `<div><span>Prefill (prompt feldolgozás)</span><b>${tps(a.prefillTps)} tok/s</b></div>`+
+    `<div><span>Első token (${kctx(S.prompt)} prompt)</span><b>${secs(a.ttft)}</b></div>`+
+    `<div><span>Hatásos sávszél</span><b>${ni(a.bw/1e9*h.eff)} GB/s</b></div>`+
+    (S.par>1?`<div><span>Összesen, ${S.par} kérés</span><b>${tps(a.agg)} tok/s</b></div><div><span>Kérésenként</span><b>${tps(a.perUser)} tok/s</b></div>`:
+    `<div><span>Tokenenként olvasott súly</span><b>${gib(a.actB)} GiB</b></div><div><span>${a.useSpec?"Spekulatív gyorsítás":"Elméleti plafon (csak sávszél)"}</span><b>${a.useSpec?nf(a.sm,2)+"×":tps(a.bw/a.actB)+" tok/s"}</b></div>`);
+  // spekulatív
+  const hasSpec = !!m.spec;
+  $("specSw").disabled = !hasSpec;
+  $("specSw").classList.toggle("on", hasSpec && S.spec);
+  $("specKind").textContent = hasSpec ? `(${m.spec.kind})` : "";
+  $("specNote").textContent = hasSpec
+    ? (S.spec ? `≈ ${nf(specMul(m,S),2)}× decode, +${nf(m.spec.mem||0,1)} GiB memória` : "Kapcsold be, ha a runtime támogatja (llama.cpp, vLLM).")
+    : "Ehhez a modellhez nincs beépített draft fej.";
+  $("specRow").style.display = hasSpec && S.spec ? "" : "none";
+  // kalibrálás
+  const qlabel = q.id==="native" ? "gyári" : q.label;
+  $("calCmd").textContent = `llama-bench -m ${m.name.replace(/[^\w.-]+/g,"-")}-${qlabel.replace(/[^\w]+/g,"")}.gguf -p 512 -n 128 -fa 1`;
+  $("calMsg").className = "msg";
+  $("calMsg").textContent = c ? `Ez a gép kalibrálva: decode ×${nf(c.tg,2)}, prefill ×${nf(c.pp,2)}.` : "";
+  $("sFoot").textContent = a.status==="offload" ? "* A kilógó súlyokat a rendszer-RAM sávszélével olvassa, ez a lassulás fő oka." : (c ? "* Kalibrált becslés a saját mérésed alapján." : "* Becslés ±20%; kalibráld a saját llama-bench méréseddel.");
+
+  renderReco(a, m, h);
+  renderTable();
+  renderRoi(a, m, h);
+  $("dataInfo").textContent = `Verzió: ${DATA.version||"?"} · ${DATA_SRC} · ${MODELS.filter(x=>!x.user).length} modell, ${HW.length} hardver, ${CLOUD.length} felhős ár${MODELS.some(x=>x.user)?` · ${MODELS.filter(x=>x.user).length} saját modell`:""}. Exportáld, írd át az árakat bármilyen szövegszerkesztőben, és importáld vissza; a böngésződ megjegyzi.`;
+  saveHash();
+}
+
+function renderReco(a, m, h){
+  const out = [];
+  const kvShare = a.kv/a.poolNeed;
+  if(a.status==="fit"){
+    out.push(`Elfér: ${gib(a.U - a.need)} GiB marad szabadon a ${ni(S.margin*100)}% tartalék után. Ezen a gépen legfeljebb ${kctx(a.maxCtx)} token kontextus fér el.`);
+    const better = QUANTS.filter(x=>x.bits && x.bits > a.bits + 0.3).sort((p,q)=>q.bits-p.bits)
+      .map(x=>({x, r:analyze(m, Object.assign({},S,{quant:x.id}), h)})).find(o=>o.r.status==="fit");
+    if(better) out.push(`Belefér a jobb minőségű ${esc(better.x.label)} is (${gib(better.r.need)} GiB), ~${tps(better.r.tpsEmpty)} tok/s-mal.`);
+    const extra = Math.floor((a.U/(1+S.margin) - a.poolNeed)/a.kvSeq);
+    if(extra >= 1 && S.par === 1) out.push(`A szabad memóriában még kb. ${extra} párhuzamos ${kctx(S.ctx)} tokenes kérés KV-je elférne (vLLM / llama-server <span class="mono">--parallel</span>).`);
+  }
+  if(a.status==="offload"){
+    out.push(`Csak részben fér a GPU-ra (${ni(a.fGPU*100)}%), a többi a rendszer-RAM-ból fut, ezért ~${tps(a.tpsEmpty)} tok/s várható.`);
+    if(m.active < m.total*0.8) out.push(`MoE modell: llama.cpp-ben a <span class="mono">--n-cpu-moe</span> kapcsolóval a szakértő-rétegeket tedd a CPU-ra, az attention maradjon a GPU-n.`);
+  }
+  if(a.status==="nofit"){
+    const smaller = QUANTS.filter(x=>x.bits && x.bits < a.bits && x.bits >= 3.9).map(x=>x.label).slice(-2);
+    out.push(`Nem fér el: ${gib(a.need - a.U)} GiB hiányzik.${smaller.length?` Próbáld ${smaller.join(" vagy ")} kvantálással,`:""} rövidebb kontextussal, vagy nagyobb memóriájú géppel.`);
+    const fits = HW.filter(x=>x.plat!=="custom" && x.price).map(x=>({x, r:analyze(m,S,x)})).filter(o=>o.r.status==="fit").sort((p,q)=>p.x.price-q.x.price)[0];
+    if(fits) out.push(`A listából a legolcsóbb, amin elfér: ${esc(fits.x.name)} (${usd(fits.x.price)}), ~${tps(fits.r.tpsEmpty)} tok/s.`);
+  }
+  if(kvShare > 0.25 && S.kv==="f16") out.push(`A KV cache a memória ${ni(kvShare*100)}%-a: Q8_0 KV-vel kb. ${gib(a.kv*0.47)} GiB-ot nyersz, alig mérhető minőségromlással.`);
+  if(a.status!=="nofit" && m.spec && !S.spec) out.push(`A modellnek van ${esc(m.spec.kind)} draft feje: bekapcsolva kb. ${nf(Math.max(1,m.spec.L/(1+m.spec.ov)),1)}× gyorsabb decode várható.`);
+  if(a.status!=="nofit" && a.tpsEmpty < 10) out.push(`${tps(a.tpsEmpty)} tok/s interaktív munkára lassú (10 alatt). Kisebb aktív paraméterszámú (MoE) modell vagy nagyobb sávszélű gép segít.`);
+  if(a.status!=="nofit" && a.ttft > 15) out.push(`Egy ${kctx(S.prompt)} tokenes prompt ~${secs(a.ttft)} alatt dolgozódik fel.${h.type==="apple"||h.type==="cpu"?" Apple-ön és CPU-n ez a tipikus szűk keresztmetszet;":""} hosszú kontextusú agentekhez prefix cache-t használj.`);
+  if(a.multi && !S.tp && a.status!=="nofit") out.push(`Két kártyán vLLM tensor parallel kb. ${tps(a.tpsEmpty*h.count*0.85)} tok/s-ra gyorsítana, mert a sávszélek összeadódnak.`);
+  if(h.type==="apple" && a.status==="nofit" && a.poolNeed < (h.mem/0.75)*0.94*GiB) out.push(`A teljes RAM-ba beleférne: <span class="mono">sudo sysctl iogpu.wired_limit_mb=…</span>-val emeld a GPU-limitet (újraindításkor visszaáll).`);
+  if(S.ctx > m.maxCtx) out.push(`A beállított kontextus a modell natív maximumánál (${kctx(m.maxCtx)}) nagyobb.`);
+  if(m.user) out.push(`Hugging Face-ről betöltött modell: ellenőrizd az aktív paramétert és a rétegtípusokat az architektúra részleteinél.`);
+  const card = $("recoCard");
+  card.classList.remove("ok","mid");
+  if(a.status==="fit" && a.tpsEmpty >= 15) card.classList.add("ok");
+  else if(a.status!=="nofit") card.classList.add("mid");
+  $("recoList").innerHTML = out.slice(0,5).map(t=>`<li>${t}</li>`).join("");
+}
+
+function renderTable(){
+  const m = S.model;
+  const rows = HW.filter(x=>x.plat!=="custom").map(x => {
+    const hh = x.id===S.hwId ? S.hw : x;
+    return {x, hh, r: analyze(m, S, hh)};
+  });
+  const st = {fit:'<span class="badge st-fit">elfér</span>', offload:'<span class="badge st-offload">offload</span>', nofit:'<span class="badge st-nofit">nem fér el</span>'};
+  const platName = {cpu:"CPU",nvidia:"NVIDIA",amd:"AMD",apple:"Apple",unified:"Unified"};
+  $("cmpTable").innerHTML = `<thead><tr><th>Hardver</th><th class="num">Memória</th><th class="num">Sávszél</th><th>Állapot</th><th class="num">tok/s (üres / teli)</th><th class="num">Első token</th><th class="num">Max ctx</th><th class="num">Ár</th></tr></thead><tbody>`+
+    rows.map(({x,hh,r})=>`<tr class="hw${x.id===S.hwId?" sel":""}" data-id="${esc(x.id)}">
+      <td>${esc(x.name)}<span class="grp">${platName[x.plat]||esc(x.plat)}</span>${S.cal[x.id]?'<span class="calbadge">kal.</span>':""}</td>
+      <td class="num">${ni(poolGiB(hh))} GiB</td>
+      <td class="num">${ni(hh.bw*(r.multi&&S.tp?hh.count*0.85:1))} GB/s</td>
+      <td>${st[r.status]}</td>
+      <td class="num">${r.status==="nofit"?"–":tps(r.tpsEmpty)+" / "+tps(r.tpsFull)}</td>
+      <td class="num">${r.status==="nofit"?"–":secs(r.ttft)}</td>
+      <td class="num">${r.maxCtx>0?kctx(r.maxCtx):"–"}</td>
+      <td class="num">${x.price?(x.est?"~":"")+usd(x.id===S.hwId?S.price:x.price):"?"}</td></tr>`).join("")+`</tbody>`;
+}
+
+function cloudMonthUSD(cl, s){
+  const c = s.rcache/100;
+  const pc = cl.pc==null ? cl.pin : cl.pc;
+  return 30*(s.rin*((1-c)*cl.pin + c*pc) + s.rout*cl.pout);
+}
+function qualityMatch(m){
+  if(m.q==null) return null;
+  return CLOUD.filter(c=>c.q!=null && c.q >= m.q - 2).map(c=>({c, usd:cloudMonthUSD(c,S)})).sort((p,q)=>p.usd-q.usd)[0] || null;
+}
+
+function renderRoi(a, m, h){
+  const c = S.rcache/100;
+  const pc = (S.ccache===""||S.ccache==null||isNaN(S.ccache)) ? S.cin : S.ccache;
+  const cloudDay = S.rin*((1-c)*S.cin + c*pc) + S.rout*S.cout;
+  const cloudFt = cloudDay*30*S.fx;
+  const cl = CLOUD.find(x=>x.id===S.cloud) || CLOUD[CLOUD.length-1];
+  $("oCloud").textContent = ft(cloudFt);
+  $("oCloudS").textContent = `${usd(cloudDay*30)} / hó · ${cl.name}`;
+
+  // minőség sor
+  const qm = qualityMatch(m);
+  $("qMatch").disabled = !qm;
+  $("qMatchNote").textContent = m.q==null ? "A helyi modellhez nincs minőségi pontszám." : (qm ? `${qm.c.name}, ${usd(qm.usd)}/hó` : "Nincs hasonló minőségű felhős modell a listában.");
+  const qbar = v => v==null ? "" : `<div class="qbar"><i style="width:${Math.min(100,v/60*100)}%"></i></div>`;
+  const gap = (m.q!=null && cl.q!=null) ? cl.q - m.q : null;
+  $("qRow").innerHTML =
+    `<div class="qcell"><div class="k">Helyi modell minősége</div><div class="v">${m.q!=null?nf(m.q,m.q%1?1:0)+(m.qv||""):"–"}</div><div class="hint" style="margin-top:4px">${esc(m.name)}</div>${qbar(m.q)}</div>`+
+    `<div class="qcell"><div class="k">Felhős modell minősége</div><div class="v">${cl.q!=null?nf(cl.q,cl.q%1?1:0):"–"}</div><div class="hint" style="margin-top:4px">${esc(cl.name)}</div>${qbar(cl.q)}</div>`+
+    `<div class="qcell"><div class="k">Különbség</div><div class="v" style="color:${gap==null?"inherit":gap>3?"var(--red)":gap<-3?"var(--green)":"inherit"}">${gap==null?"–":(gap>0?"+":"")+nf(gap,1)}</div><div class="hint" style="margin-top:4px">${gap==null?"Nincs pontszám az egyik oldalon.":gap>3?"A felhős modell érdemben erősebb: nem azonos szolgáltatást hasonlítasz.":gap<-3?"A helyi modell erősebb ennél az API-nál.":"Hasonló minőség, az összevetés fair."}</div></div>`;
+
+  if(a.status==="nofit"){
+    ["oLocal","oRent","oPay"].forEach(id=>$(id).textContent="–");
+    $("oLocalS").textContent = "a modell nem fut ezen a gépen";
+    $("oRentS").textContent = ""; $("oPayS").textContent = "";
+    $("utilVal").textContent = "–"; $("utilBar").innerHTML = "";
+    $("verdict").className = "verdict v-bad";
+    $("verdict").innerHTML = `<b>NEM SZÁMOLHATÓ:</b> a kiválasztott modell nem fér el a(z) ${esc(h.name)} memóriájában. Válassz másik hardvert vagy kisebb kvantálást, és a megtérülés automatikusan frissül.`;
+    return;
+  }
+  const outS = S.rout*1e6/a.agg;
+  const inS = S.rin*1e6*(1-c)/a.prefillTps;
+  const busyH = (outS+inS)/3600;
+  const machines = Math.max(1, Math.ceil(busyH/(24*0.85)));
+  const hPer = busyH/machines;
+  const util = hPer/24;
+  const kWh = machines*30*((S.wl||0)*Math.min(24,hPer) + (S.wi||0)*Math.max(0,24-hPer))/1000;
+  const powerFt = kWh*S.kwh;
+  const priceKnown = S.price != null && S.price !== "" && !isNaN(S.price);
+  const capexFt = priceKnown ? S.price*machines*S.fx : NaN;
+  const tcoFt = capexFt*(1-S.resale/100)/S.amort + powerFt + S.ops;
+  const save = cloudFt - powerFt - S.ops;
+  const payback = save > 0 ? capexFt/save : Infinity;
+  const rentFt = S.rent*S.fx*busyH*30;
+
+  $("oLocal").textContent = priceKnown ? ft(tcoFt) : "add meg az árat";
+  $("oLocalS").textContent = `${machines>1?machines+" gép · ":""}áram ${ft(powerFt)} (${ni(kWh)} kWh) · leírás ${S.amort} hó`;
+  $("oRent").textContent = ft(rentFt);
+  $("oRentS").textContent = `${nf(busyH,1)} gépóra/nap × $${S.rent}/óra, azonos teljesítményt feltételezve`;
+  $("oPay").textContent = !priceKnown ? "?" : (payback===Infinity ? "soha" : payback < 1 ? "< 1 hó" : nf(payback, payback<10?1:0)+" hó");
+  $("oPayS").textContent = priceKnown ? `beruházás ${ft(capexFt)} · havi megtakarítás ${ft(Math.max(0,save))}` : "";
+
+  $("utilVal").textContent = `${nf(busyH,1)} óra/nap${machines>1?` → ${machines} gép kell`:""} · ${ni(util*100)}%`;
+  $("utilBar").innerHTML = `<div class="seg-w" style="width:${Math.min(100,util*100)}%">${util>0.12?ni(util*100)+"%":""}</div>`;
+
+  const lines = [];
+  let cls = "v-bad", head = "A FELHŐ AZ OLCSÓBB";
+  if(priceKnown && payback !== Infinity){
+    if(payback <= S.amort*0.5){ cls="v-good"; head="MEGÉRI A SAJÁT GÉP"; }
+    else if(payback <= S.amort){ cls="v-mid"; head="HATÁRESET"; }
+  }
+  if(!priceKnown){ cls="v-mid"; head="HIÁNYZÓ ÁR"; lines.push("Írd be a hardver árát a megtérüléshez."); }
+  else if(payback===Infinity) lines.push(`Az áram és az üzemeltetés (${ft(powerFt+S.ops)}/hó) többe kerül, mint az API-számla (${ft(cloudFt)}/hó).`);
+  else lines.push(`A gép ${nf(payback,1)} hónap alatt hozza vissza az árát, a ${S.amort} hónapos leírási időhöz képest.`);
+  if(util < 0.15) lines.push(`A gép napi ${nf(busyH,1)} órát dolgozna: ilyen kihasználtságnál a bérelt GPU (${ft(rentFt)}/hó) vagy az API rugalmasabb.`);
+  if(machines>1) lines.push(`A megadott forgalomhoz ${machines} gép kellene, ezzel számoltam.`);
+  if(gap!=null && gap > 3){
+    if(cls==="v-good"){ cls="v-mid"; head="OLCSÓBB, DE GYENGÉBB"; }
+    lines.push(`A(z) ${esc(cl.name)} ${nf(gap,1)} ponttal erősebb a ${esc(m.name)}-nél. ${qm && qm.c.id!==cl.id ?`Fair összevetéshez nyomd meg a „legolcsóbb hasonló minőségű” gombot (${esc(qm.c.name)}, ${ft(qm.usd*S.fx)}/hó).`:"Ez már a legolcsóbb legalább hasonló minőségű API a listában."}`);
+  } else if(gap==null && m.q==null) lines.push("A helyi modellnek nincs minőségi pontszáma, a minőségkülönbséget magadnak kell felmérned.");
+  lines.push("Adatvédelem (GDPR), offline működés és rate limit hiánya a saját gép mellett szól; a karbantartás, a gyorsan avuló hardver és a frontier minőség a felhő mellett.");
+  $("verdict").className = "verdict "+cls;
+  $("verdict").innerHTML = `<b>${head}:</b> ${lines.join(" ")}`;
+}
+
+/* ---------- ESEMÉNYEK ---------- */
+function num(id, def){ const v = parseFloat($(id).value); return isNaN(v) ? def : v; }
+function setCloud(id){
+  const c = CLOUD.find(x=>x.id===id) || CLOUD[0];
+  S.cloud = c.id; S.cin = c.pin; S.cout = c.pout; S.ccache = c.pc==null?c.pin:c.pc;
+}
+function addUserModel(m){
+  const list = (LS.get("llm-user-models") || []).filter(x=>x.id!==m.id);
+  list.push(m); LS.set("llm-user-models", list);
+  MODELS = MODELS.filter(x=>x.id!==m.id); MODELS.push(m); DATA.models = MODELS;
+  fillPresetSelect(); loadPreset(m.id); syncInputs(); render();
+}
+function msg(id, text, kind){ $(id).className = "msg" + (kind?" "+kind:""); $(id).textContent = text; }
+
+function bind(){
+  $("preset").addEventListener("change", e=>{ loadPreset(e.target.value); syncInputs(); render(); });
+  $("paramRange").addEventListener("input", e=>{
+    const b = sliderToB(+e.target.value);
+    const r = b < 10 ? Math.round(b*10)/10 : Math.round(b);
+    const ratio = S.model.active/S.model.total;
+    S.model.total = r; S.model.active = Math.round(r*ratio*10)/10; S.edited = true;
+    $("a_active").value = S.model.active; render();
+  });
+  $("paramChips").addEventListener("click", e=>{
+    const b = e.target.dataset.b; if(!b) return;
+    const ratio = S.model.active/S.model.total;
+    S.model.total = +b; S.model.active = Math.round(+b*ratio*10)/10; S.edited = true; syncInputs(); render();
+  });
+  $("quant").addEventListener("change", e=>{ S.quant = e.target.value; render(); });
+  $("kvType").addEventListener("change", e=>{ S.kv = e.target.value; render(); });
+  $("ctx").addEventListener("input", ()=>{ S.ctx = Math.max(512, Math.round(num("ctx", 4096))); render(); });
+  $("par").addEventListener("input", ()=>{ S.par = Math.min(256, Math.max(1, Math.round(num("par",1)))); render(); });
+  $("ctxChips").addEventListener("click", e=>{ const c = e.target.dataset.c; if(!c) return; S.ctx = +c; $("ctx").value = S.ctx; render(); });
+
+  ["a_active","a_host","a_fn","a_fkv","a_fhd","a_sn","a_skvd","a_sw","a_mn","a_md","a_cap","a_vocab","a_maxctx"].forEach(id=>$(id).addEventListener("input", ()=>{
+    const m = S.model;
+    m.active = Math.max(0.1, num("a_active", m.active));
+    m.host = Math.max(0, num("a_host", 0));
+    const fn = num("a_fn",0), cap = num("a_cap",0);
+    m.full = fn>0 ? {n:fn, kv:num("a_fkv",8), hd:num("a_fhd",128), cap:cap} : null;
+    const sn = num("a_sn",0); const kd = ($("a_skvd").value||"").toLowerCase().split(/[x×*]/).map(Number);
+    m.swa = sn>0 ? {n:sn, kv:kd[0]||8, hd:kd[1]||128, win:num("a_sw",1024)} : null;
+    const mn = num("a_mn",0);
+    m.mla = mn>0 ? {n:mn, dim:num("a_md",512), cap:cap} : null;
+    m.vocab = Math.max(1000, num("a_vocab", 152064));
+    m.maxCtx = Math.max(512, num("a_maxctx", 131072));
+    S.edited = true; render();
+  }));
+
+  // Hugging Face
+  $("hfLoad").addEventListener("click", async ()=>{
+    const id = ($("hfId").value||"").trim().replace(/^https?:\/\/huggingface\.co\//,"").replace(/\/(tree|blob|resolve)\/.*$/,"").replace(/\/+$/,"");
+    if(!/^[\w.-]+\/[\w.-]+$/.test(id)){ msg("hfMsg","Add meg „szervezet/modell” formában, pl. Qwen/Qwen3.8-27B.","err"); return; }
+    $("hfLoad").disabled = true; msg("hfMsg","Betöltés…");
+    try{
+      const r = await fetch(`https://huggingface.co/${id}/resolve/main/config.json`);
+      if(!r.ok) throw new Error(r.status===401||r.status===403 ? "a modell engedélyhez kötött (gated): illeszd be a config.json-t" : `HTTP ${r.status}`);
+      const cfg = await r.json();
+      let total = null;
+      try{ const ri = await fetch(`https://huggingface.co/api/models/${id}`); if(ri.ok){ const info = await ri.json(); total = info && info.safetensors && info.safetensors.total; } }catch(e){}
+      const m = parseConfig(cfg, total, id);
+      addUserModel(m);
+      msg("hfMsg", `Betöltve: ${m.name} · ${nf(m.total,1)}B, ${nf(m.active,1)}B aktív. Ellenőrizd az architektúra részleteit.`, "ok");
+    }catch(e){
+      msg("hfMsg", `Nem sikerült: ${e.message}. Ha a böngésző blokkolja, másold be a config.json tartalmát lent.`, "err");
+    }finally{ $("hfLoad").disabled = false; }
+  });
+  $("cfgParse").addEventListener("click", ()=>{
+    try{
+      const cfg = JSON.parse($("cfgText").value);
+      const p = parseFloat($("cfgParams").value);
+      const id = ($("hfId").value||"").trim() || null;
+      const m = parseConfig(cfg, isNaN(p) ? null : p*1e9, id);
+      addUserModel(m);
+      msg("hfMsg", `Feldolgozva: ${m.name} · ${nf(m.total,1)}B, ${nf(m.active,1)}B aktív.`, "ok");
+    }catch(e){ msg("hfMsg", `Hibás config: ${e.message}`, "err"); }
+  });
+
+  $("platSeg").addEventListener("click", e=>{ const v = e.target.dataset.v; if(!v) return; S.plat = v; fillHwSelect(); syncInputs(); render(); });
+  $("hwSel").addEventListener("change", e=>{ loadHw(e.target.value); syncInputs(); render(); });
+  $("cmpTable").addEventListener("click", e=>{
+    const tr = e.target.closest("tr.hw"); if(!tr) return;
+    const h = HW.find(x=>x.id===tr.dataset.id);
+    if(S.plat!=="all" && h.plat!==S.plat) S.plat = "all";
+    loadHw(h.id); fillHwSelect(); syncInputs(); render();
+  });
+  const hwEdit = () => {
+    const h = S.hw;
+    const mem = Math.max(1, num("h_mem", poolGiB(h)));
+    if(h.type==="dgpu") h.vram = (mem+0.5)/h.count; else h.mem = mem;
+    h.bw = Math.max(1, num("h_bw", h.bw)); h.tf = Math.max(0.1, num("h_tf", h.tf));
+    h.sys = Math.max(0, num("h_sys", h.sys||0)); h.sysbw = Math.max(1, num("h_sysbw", h.sysbw||96));
+    S.hwEdited = true; render();
+  };
+  ["h_mem","h_bw","h_tf","h_sys","h_sysbw"].forEach(id=>$(id).addEventListener("input", hwEdit));
+  $("tpSeg").addEventListener("click", e=>{ const v = e.target.dataset.v; if(v==null) return; S.tp = +v; syncInputs(); render(); });
+  $("margin").addEventListener("change", e=>{ S.margin = +e.target.value; render(); });
+  $("prompt").addEventListener("input", ()=>{ S.prompt = Math.max(16, num("prompt", 4000)); render(); });
+
+  // spekulatív dekódolás
+  $("specSw").addEventListener("click", ()=>{ if(!S.model.spec) return; S.spec = !S.spec; render(); });
+  $("specL").addEventListener("input", ()=>{ S.specL = Math.min(10, Math.max(1, num("specL", 1.9))); render(); });
+  $("specOv").addEventListener("input", ()=>{ S.specOv = Math.min(300, Math.max(0, num("specOv", 10))); render(); });
+
+  // kalibrálás
+  $("calApply").addEventListener("click", ()=>{
+    const mpp = num("calPp", NaN), mtg = num("calTg", NaN);
+    if(isNaN(mpp) && isNaN(mtg)){ msg("calMsg","Írj be legalább egy mért értéket.","err"); return; }
+    const raw = analyze(S.model, Object.assign({}, S, {ctx:Math.max(S.ctx,640), par:1}), S.hw, {raw:true});
+    if(raw.status==="nofit"){ msg("calMsg","A modell a becslés szerint nem fér el ezen a gépen; kalibráláshoz válassz olyan modellt/kvantálást, amelyik elfér.","err"); return; }
+    const c = {tg:1, pp:1};
+    if(!isNaN(mtg) && mtg>0){ c.tg = mtg/raw.tpsBench; c.mtg = mtg; }
+    if(!isNaN(mpp) && mpp>0){ c.pp = mpp/raw.prefillTps; c.mpp = mpp; }
+    S.cal[S.hwId] = c; LS.set("llm-cal", S.cal); fillHwSelect(); render();
+    msg("calMsg", `Kalibrálva: decode ×${nf(c.tg,2)}, prefill ×${nf(c.pp,2)} (becsült tg128 ${tps(raw.tpsBench)}, pp512 ${tps(raw.prefillTps)} tok/s volt).`, "ok");
+  });
+  $("calReset").addEventListener("click", ()=>{ delete S.cal[S.hwId]; LS.set("llm-cal", S.cal); $("calPp").value=""; $("calTg").value=""; fillHwSelect(); render(); });
+
+  // ROI
+  $("cloudSel").addEventListener("change", e=>{ setCloud(e.target.value); syncInputs(); render(); });
+  $("qMatch").addEventListener("click", ()=>{ const qm = qualityMatch(S.model); if(!qm) return; setCloud(qm.c.id); syncInputs(); render(); });
+  const roiMap = {c_in:"cin",c_out:"cout",c_cache:"ccache",r_in:"rin",r_out:"rout",r_cache:"rcache",r_kwh:"kwh",r_fx:"fx",h_wl:"wl",h_wi:"wi",r_amort:"amort",r_resale:"resale",r_ops:"ops",r_rent:"rent"};
+  Object.entries(roiMap).forEach(([id,k])=>$(id).addEventListener("input", ()=>{ S[k] = Math.max(0, num(id, S[k]||0)); if(k==="amort") S.amort = Math.max(1,S.amort); render(); }));
+  $("h_price").addEventListener("input", ()=>{ const v = parseFloat($("h_price").value); S.price = isNaN(v) ? null : v; render(); });
+
+  // adatfájl
+  $("dataExport").addEventListener("click", ()=>{
+    const out = clone(DATA);
+    out.models = out.models.filter(m=>!m.user);
+    out.userModels = MODELS.filter(m=>m.user);
+    const blob = new Blob([JSON.stringify(out, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `llm-hardver-adatok-${DATA.version||"export"}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    msg("dataMsg","Exportálva. Szerkeszd az árakat/modelleket, majd importáld vissza.","ok");
+  });
+  $("dataFile").addEventListener("change", e=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try{
+        const d = JSON.parse(rd.result);
+        if(!validData(d)) throw new Error("hiányzik a models / hardware / cloud lista");
+        const um = Array.isArray(d.userModels) ? d.userModels : [];
+        delete d.userModels;
+        LS.set("llm-data-override", d);
+        if(um.length) LS.set("llm-user-models", um);
+        applyData();
+        msg("dataMsg", `Importálva: ${d.version||"verzió nélkül"} · ${d.models.length} modell, ${d.hardware.length} hardver, ${d.cloud.length} felhős ár.`, "ok");
+      }catch(err){ msg("dataMsg", `Nem sikerült importálni: ${err.message}`, "err"); }
+      e.target.value = "";
+    };
+    rd.readAsText(f);
+  });
+  $("dataReset").addEventListener("click", ()=>{
+    LS.del("llm-data-override"); applyData();
+    msg("dataMsg","Visszaállítva a beépített adatokra (a saját modellek megmaradtak).","ok");
+  });
+}
+function applyData(){
+  loadData(); MODELS = DATA.models; HW = DATA.hardware; CLOUD = DATA.cloud;
+  fillPresetSelect(); fillCloudSelect();
+  if(!MODELS.find(m=>m.id===S.presetId)) S.presetId = MODELS[0].id;
+  loadPreset(S.presetId);
+  if(!HW.find(h=>h.id===S.hwId)) S.hwId = HW[0].id;
+  loadHw(S.hwId);
+  if(!CLOUD.find(c=>c.id===S.cloud)) S.cloud = CLOUD[0].id;
+  setCloud(S.cloud);
+  fillHwSelect(); syncInputs(); render();
+}
+
+/* ---------- MEGOSZTHATÓ ÁLLAPOT (#) ---------- */
+let hashTimer = null;
+function saveHash(){
+  clearTimeout(hashTimer);
+  hashTimer = setTimeout(()=>{
+    try{ history.replaceState(null, "", "#"+btoa(unescape(encodeURIComponent(JSON.stringify(S))))); }catch(e){}
+  }, 300);
+}
+function loadHash(){
+  try{
+    if(location.hash.length < 10) return false;
+    const st = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+    if(!st || !st.model || !st.hw) return false;
+    Object.assign(S, st);
+    if(!S.cal) S.cal = {};
+    if(S.model.user && !MODELS.find(x=>x.id===S.model.id)){ MODELS.push(clone(S.model)); }
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ---------- INDÍTÁS ---------- */
+fillSelects();
+if(!loadHash()){
+  const savedCal = LS.get("llm-cal"); if(savedCal) S.cal = savedCal;
+  loadPreset(S.presetId);
+  loadHw(S.hwId);
+  setCloud(S.cloud);
+}
+fillPresetSelect();
+fillHwSelect();
+syncInputs();
+bind();
+render();
+})();
+</script>
+</body>
+</html>
