@@ -1,10 +1,10 @@
-# LLM VRAM / RAM / Token/s Calculator — v3.1 (fixed)
+# LLM VRAM / RAM / Token/s Calculator — v3.1 
 
 A browser-based, single-file capacity-planning tool for local LLM inference. The interface is in Hungarian; this README explains the calculation model and the v3.1 fixes in English.
 
 ## Run
 
-1. Open `index.html` (or `llm-vram-calculator_v3_1_fixed.html`) in a modern browser. There is no backend or build step.
+1. Open `index.html`  in a modern browser. There is no backend or build step.
 2. Choose a model, or import its Hugging Face `config.json` / paste configuration JSON.
 3. Set weight quantization, KV-cache type, context length, concurrent requests, and memory safety margin.
 4. Choose hardware (or edit usable memory, bandwidth, compute, RAM and RAM bandwidth).
